@@ -1,1 +1,19 @@
 package repositories
+
+import (
+	"prodyo-backend/cmd/internal/models"
+	"prodyo-backend/cmd/internal/repositories/project"
+)
+
+type Repositories struct {
+	Project interface {
+		GetAll() ([]models.Project, error)
+		Add(newProject models.Project) error
+	}
+}
+
+func New() *Repositories {
+	return &Repositories{
+		Project: project.New(),
+	}
+}
