@@ -20,13 +20,11 @@ func NewProjectHandlers(projectUseCase *usecases.ProjectUseCase) *ProjectHandler
 	}
 }
 
-// CreateProjectRequest represents the request body for creating a project
 type CreateProjectRequest struct {
 	Name  string `json:"name" validate:"required"`
 	Email string `json:"email" validate:"required,email"`
 }
 
-// UpdateProjectRequest represents the request body for updating a project
 type UpdateProjectRequest struct {
 	Name  string `json:"name" validate:"required"`
 	Email string `json:"email" validate:"required,email"`

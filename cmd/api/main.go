@@ -26,38 +26,31 @@ import (
 	"prodyo-backend/cmd/internal/handlers"
 	"prodyo-backend/cmd/internal/repositories"
 	"prodyo-backend/cmd/internal/usecases"
-	_ "prodyo-backend/docs" // This is required for swagger docs
+	_ "prodyo-backend/docs"
 )
 
 func main() {
-	// Load configuration
 	cfg := config.Load()
 
-	// Initialize database connection
 	db := repositories.NewDB(cfg.DSN())
 	defer db.Close()
 
-	// Initialize repositories
 	repos := repositories.New()
 
-	// Initialize use cases
 	projectUseCase := usecases.New(repos)
 
-	// Setup routes
 	router := handlers.SetupRoutes(projectUseCase)
 
-	// Start server
-	log.Println("🚀 Server starting on :8081")
-	log.Println("📋 Available endpoints:")
-	log.Println("  GET    /api/v1/projects     - Get all projects")
-	log.Println("  POST   /api/v1/projects     - Create a new project")
-	log.Println("  GET    /api/v1/projects/{id} - Get project by ID")
-	log.Println("  PUT    /api/v1/projects/{id} - Update project by ID")
-	log.Println("  DELETE /api/v1/projects/{id} - Delete project by ID")
-	log.Println("  GET    /health              - Health check")
-	log.Println("  GET    /swagger/index.html  - Swagger UI documentation")
+	// log.Println("📋 Available endpoints:")
+	// log.Println("  GET    /api/v1/projects     - Get all projects")
+	// log.Println("  POST   /api/v1/projects     - Create a new project")
+	// log.Println("  GET    /api/v1/projects/{id} - Get project by ID")
+	// log.Println("  PUT    /api/v1/projects/{id} - Update project by ID")
+	// log.Println("  DELETE /api/v1/projects/{id} - Delete project by ID")
+	// log.Println("  GET    /health              - Health check")
+	// log.Println("  GET    /swagger/index.html  - Swagger UI documentation")
 
 	if err := http.ListenAndServe(":8081", router); err != nil {
-		log.Fatalf("❌ Failed to start server: %v", err)
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }
