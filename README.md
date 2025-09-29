@@ -133,6 +133,78 @@ If you make changes to the API annotations, regenerate the Swagger documentation
 swag init -g cmd/api/main.go -o docs
 ```
 
+## Docker Setup
+
+This project includes Docker configuration for PostgreSQL database and pgAdmin for database management.
+
+### Prerequisites
+
+- Docker and Docker Compose installed on your system
+
+### Starting the Database Services
+
+1. **Start PostgreSQL and pgAdmin:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Check if services are running:**
+   ```bash
+   docker-compose ps
+   ```
+
+### Database Access
+
+- **PostgreSQL Database:**
+  - Host: `localhost`
+  - Port: `5432`
+  - Database: `prodyo_db`
+  - Username: `prodyo_user`
+  - Password: `prodyo_password`
+
+- **pgAdmin Web Interface:**
+  - URL: `http://localhost:8080`
+  - Email: `admin@prodyo.com`
+  - Password: `admin123`
+
+### Connecting to Database in pgAdmin
+
+1. Open pgAdmin at `http://localhost:8080`
+2. Login with the credentials above
+3. Right-click "Servers" → "Create" → "Server"
+4. In the "General" tab, enter a name (e.g., "Prodyo DB")
+5. In the "Connection" tab, enter:
+   - Host name/address: `postgres` (use the Docker service name)
+   - Port: `5432`
+   - Username: `prodyo_user`
+   - Password: `prodyo_password`
+6. Click "Save"
+
+### Environment Configuration
+
+The project uses environment variables for database configuration. You can modify the `.env` file to change database settings:
+
+```bash
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=prodyo_user
+DB_PASSWORD=prodyo_password
+DB_NAME=prodyo_db
+```
+
+### Stopping Services
+
+To stop the database services:
+```bash
+docker-compose down
+```
+
+To stop and remove all data (volumes):
+```bash
+docker-compose down -v
+```
+
 ## Running the API
 
 To start the API server:
@@ -142,3 +214,5 @@ go run cmd/api/main.go
 ```
 
 The server will start on port 8081 by default and will display all available endpoints including the Swagger UI.
+
+**Note:** Make sure the PostgreSQL database is running (via Docker Compose) before starting the API server.

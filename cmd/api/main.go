@@ -35,7 +35,7 @@ func main() {
 	db := repositories.NewDB(cfg.DSN())
 	defer db.Close()
 
-	repos := repositories.New()
+	repos := repositories.New(db)
 
 	projectUseCase := usecases.New(repos)
 

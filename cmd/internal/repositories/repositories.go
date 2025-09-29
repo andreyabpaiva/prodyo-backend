@@ -5,6 +5,7 @@ import (
 	"prodyo-backend/cmd/internal/repositories/project"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repositories struct {
@@ -17,8 +18,8 @@ type Repositories struct {
 	}
 }
 
-func New() *Repositories {
+func New(db *pgxpool.Pool) *Repositories {
 	return &Repositories{
-		Project: project.New(),
+		Project: project.New(db),
 	}
 }
