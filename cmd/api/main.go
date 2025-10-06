@@ -37,18 +37,9 @@ func main() {
 
 	repos := repositories.New(db)
 
-	projectUseCase := usecases.New(repos)
+	projectUseCase := usecases.NewProjectUseCase(repos.Project)
 
 	router := handlers.SetupRoutes(projectUseCase)
-
-	// log.Println("📋 Available endpoints:")
-	// log.Println("  GET    /api/v1/projects     - Get all projects")
-	// log.Println("  POST   /api/v1/projects     - Create a new project")
-	// log.Println("  GET    /api/v1/projects/{id} - Get project by ID")
-	// log.Println("  PUT    /api/v1/projects/{id} - Update project by ID")
-	// log.Println("  DELETE /api/v1/projects/{id} - Delete project by ID")
-	// log.Println("  GET    /health              - Health check")
-	// log.Println("  GET    /swagger/index.html  - Swagger UI documentation")
 
 	if err := http.ListenAndServe(":8081", router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

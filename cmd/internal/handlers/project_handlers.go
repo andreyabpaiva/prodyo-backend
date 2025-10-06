@@ -31,16 +31,9 @@ type UpdateProjectRequest struct {
 }
 
 // GetAllProjects handles GET /projects
-// @Summary Get all projects
-// @Description Retrieve all projects from the system
-// @Tags projects
-// @Accept json
-// @Produce json
-// @Success 200 {array} models.Project
-// @Failure 500 {object} map[string]string
-// @Router /projects [get]
 func (h *ProjectHandlers) GetAllProjects(w http.ResponseWriter, r *http.Request) {
-	projects, err := h.projectUseCase.GetAll()
+	ctx := r.Context()
+	projects, err := h.projectUseCase.GetAll(ctx)
 	if err != nil {
 		http.Error(w, "Failed to retrieve projects", http.StatusInternalServerError)
 		return
@@ -51,16 +44,6 @@ func (h *ProjectHandlers) GetAllProjects(w http.ResponseWriter, r *http.Request)
 }
 
 // GetProjectByID handles GET /projects/{id}
-// @Summary Get project by ID
-// @Description Retrieve a specific project by its ID
-// @Tags projects
-// @Accept json
-// @Produce json
-// @Param id path string true "Project ID"
-// @Success 200 {object} models.Project
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Router /projects/{id} [get]
 func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -71,7 +54,8 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	project, err := h.projectUseCase.GetByID(id)
+	ctx := r.Context()
+	project, err := h.projectUseCase.GetByID(ctx, id)
 	if err != nil {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
@@ -82,15 +66,6 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 }
 
 // CreateProject handles POST /projects
-// @Summary Create a new project
-// @Description Create a new project with the provided information
-// @Tags projects
-// @Accept json
-// @Produce json
-// @Param project body CreateProjectRequest true "Project information"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Router /projects [post]
 func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) {
 	var req CreateProjectRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -98,7 +73,6 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Basic validation
 	if req.Name == "" || req.Email == "" {
 		http.Error(w, "Name and email are required", http.StatusBadRequest)
 		return
@@ -109,7 +83,12 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		Email: req.Email,
 	}
 
-	projectID := h.projectUseCase.Add(newProject)
+	ctx := r.Context()
+	projectID, err := h.projectUseCase.Add(ctx, newProject)
+	if err != nil {
+		http.Error(w, "Failed to create project", http.StatusInternalServerError)
+		return
+	}
 
 	response := map[string]interface{}{
 		"id":    projectID,
@@ -123,17 +102,6 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 }
 
 // UpdateProject handles PUT /projects/{id}
-// @Summary Update a project
-// @Description Update an existing project with the provided information
-// @Tags projects
-// @Accept json
-// @Produce json
-// @Param id path string true "Project ID"
-// @Param project body UpdateProjectRequest true "Updated project information"
-// @Success 200 {object} models.Project
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /projects/{id} [put]
 func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -150,7 +118,6 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Basic validation
 	if req.Name == "" || req.Email == "" {
 		http.Error(w, "Name and email are required", http.StatusBadRequest)
 		return
@@ -162,7 +129,8 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 		Email: req.Email,
 	}
 
-	err = h.projectUseCase.Update(updatedProject)
+	ctx := r.Context()
+	err = h.projectUseCase.Update(ctx, updatedProject)
 	if err != nil {
 		http.Error(w, "Failed to update project", http.StatusInternalServerError)
 		return
@@ -173,16 +141,6 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 }
 
 // DeleteProject handles DELETE /projects/{id}
-// @Summary Delete a project
-// @Description Delete a project by its ID
-// @Tags projects
-// @Accept json
-// @Produce json
-// @Param id path string true "Project ID"
-// @Success 204 "No Content"
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /projects/{id} [delete]
 func (h *ProjectHandlers) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -193,7 +151,8 @@ func (h *ProjectHandlers) DeleteProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = h.projectUseCase.Delete(id)
+	ctx := r.Context()
+	err = h.projectUseCase.Delete(ctx, id)
 	if err != nil {
 		http.Error(w, "Failed to delete project", http.StatusInternalServerError)
 		return
