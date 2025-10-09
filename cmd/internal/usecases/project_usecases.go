@@ -17,8 +17,8 @@ func NewProjectUseCase(repo *project.Repository) *ProjectUseCase {
 	return &ProjectUseCase{repo: repo}
 }
 
-func (u *ProjectUseCase) GetAll(ctx context.Context) ([]models.Project, error) {
-	return u.repo.GetAll(ctx)
+func (u *ProjectUseCase) GetAll(ctx context.Context, pagination models.PaginationRequest) ([]models.Project, models.PaginationResponse, error) {
+	return u.repo.GetAll(ctx, pagination)
 }
 
 func (u *ProjectUseCase) GetByID(ctx context.Context, id uuid.UUID) (models.Project, error) {

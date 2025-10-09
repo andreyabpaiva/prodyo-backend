@@ -2,6 +2,23 @@ basePath: /api/v1
 definitions:
   handlers.CreateProjectRequest:
     properties:
+      color:
+        type: string
+      description:
+        type: string
+      member_ids:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      prod_range:
+        $ref: '#/definitions/models.ProductivityRange'
+    required:
+    - name
+    type: object
+  handlers.CreateUserRequest:
+    properties:
       email:
         type: string
       name:
@@ -12,6 +29,23 @@ definitions:
     type: object
   handlers.UpdateProjectRequest:
     properties:
+      color:
+        type: string
+      description:
+        type: string
+      member_ids:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      prod_range:
+        $ref: '#/definitions/models.ProductivityRange'
+    required:
+    - name
+    type: object
+  handlers.UpdateUserRequest:
+    properties:
       email:
         type: string
       name:
@@ -20,13 +54,47 @@ definitions:
     - email
     - name
     type: object
+  models.ProductivityRange:
+    properties:
+      alert:
+        type: integer
+      critical:
+        type: integer
+      ok:
+        type: integer
+    type: object
   models.Project:
     properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      name:
+        type: string
+      prod_range:
+        $ref: '#/definitions/models.ProductivityRange'
+      updated_at:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
       email:
         type: string
       id:
         type: string
       name:
+        type: string
+      updated_at:
         type: string
     type: object
 externalDocs:
@@ -50,31 +118,40 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve all projects from the system
+      description: Get a paginated list of all projects with their members
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        maximum: 100
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Projects with pagination
           schema:
-            items:
-              $ref: '#/definitions/models.Project'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: string
       summary: Get all projects
       tags:
       - projects
     post:
       consumes:
       - application/json
-      description: Create a new project with the provided information
+      description: Create a new project with members and productivity range
       parameters:
-      - description: Project information
+      - description: Project data
         in: body
         name: project
         required: true
@@ -84,16 +161,18 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Created project
           schema:
             additionalProperties: true
             type: object
         "400":
-          description: Bad Request
+          description: Invalid request body
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
+        "500":
+          description: Failed to create project
+          schema:
+            type: string
       summary: Create a new project
       tags:
       - projects
@@ -104,6 +183,7 @@ paths:
       description: Delete a project by its ID
       parameters:
       - description: Project ID
+        format: uuid
         in: path
         name: id
         required: true
@@ -112,28 +192,25 @@ paths:
       - application/json
       responses:
         "204":
-          description: No Content
+          description: Project deleted successfully
         "400":
-          description: Bad Request
+          description: Invalid project ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Failed to delete project
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a project
+            type: string
+      summary: Delete project
       tags:
       - projects
     get:
       consumes:
       - application/json
-      description: Retrieve a specific project by its ID
+      description: Get a specific project by its ID with all members
       parameters:
       - description: Project ID
+        format: uuid
         in: path
         name: id
         required: true
@@ -142,35 +219,32 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Project details
           schema:
             $ref: '#/definitions/models.Project'
         "400":
-          description: Bad Request
+          description: Invalid project ID
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "404":
-          description: Not Found
+          description: Project not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
       summary: Get project by ID
       tags:
       - projects
     put:
       consumes:
       - application/json
-      description: Update an existing project with the provided information
+      description: Update an existing project with new data
       parameters:
       - description: Project ID
+        format: uuid
         in: path
         name: id
         required: true
         type: string
-      - description: Updated project information
+      - description: Updated project data
         in: body
         name: project
         required: true
@@ -180,24 +254,174 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Updated project
           schema:
             $ref: '#/definitions/models.Project'
         "400":
-          description: Bad Request
+          description: Invalid project ID or request body
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            type: string
         "500":
-          description: Internal Server Error
+          description: Failed to update project
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update a project
+            type: string
+      summary: Update project
       tags:
       - projects
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        maximum: 100
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Users with pagination
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create user
+          schema:
+            type: string
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by its ID
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User deleted successfully
+        "400":
+          description: Invalid user ID
+          schema:
+            type: string
+        "500":
+          description: Failed to delete user
+          schema:
+            type: string
+      summary: Delete user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get a specific user by its ID
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid user ID
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated user data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid user ID or request body
+          schema:
+            type: string
+        "500":
+          description: Failed to update user
+          schema:
+            type: string
+      summary: Update user
+      tags:
+      - users
 securityDefinitions:
   BasicAuth:
     type: basic

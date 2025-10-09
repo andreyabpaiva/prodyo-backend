@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"prodyo-backend/cmd/internal/models"
 	"prodyo-backend/cmd/internal/usecases"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -21,29 +22,79 @@ func NewProjectHandlers(projectUseCase *usecases.ProjectUseCase) *ProjectHandler
 }
 
 type CreateProjectRequest struct {
-	Name  string `json:"name" validate:"required"`
-	Email string `json:"email" validate:"required,email"`
+	Name        string                   `json:"name" validate:"required"`
+	Description string                   `json:"description"`
+	Color       string                   `json:"color"`
+	ProdRange   models.ProductivityRange `json:"prod_range"`
+	MemberIDs   []string                 `json:"member_ids"`
 }
 
 type UpdateProjectRequest struct {
-	Name  string `json:"name" validate:"required"`
-	Email string `json:"email" validate:"required,email"`
+	Name        string                   `json:"name" validate:"required"`
+	Description string                   `json:"description"`
+	Color       string                   `json:"color"`
+	ProdRange   models.ProductivityRange `json:"prod_range"`
+	MemberIDs   []string                 `json:"member_ids"`
 }
 
 // GetAllProjects handles GET /projects
+// @Summary Get all projects
+// @Description Get a paginated list of all projects with their members
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20) maximum(100)
+// @Success 200 {object} map[string]interface{} "Projects with pagination"
+// @Failure 500 {string} string "Internal server error"
+// @Router /projects [get]
 func (h *ProjectHandlers) GetAllProjects(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	projects, err := h.projectUseCase.GetAll(ctx)
+
+	// Parse pagination parameters
+	pagination := models.PaginationRequest{
+		Page:     1,
+		PageSize: 20,
+	}
+
+	if page := r.URL.Query().Get("page"); page != "" {
+		if p, err := strconv.Atoi(page); err == nil && p > 0 {
+			pagination.Page = p
+		}
+	}
+
+	if pageSize := r.URL.Query().Get("page_size"); pageSize != "" {
+		if ps, err := strconv.Atoi(pageSize); err == nil && ps > 0 && ps <= 100 {
+			pagination.PageSize = ps
+		}
+	}
+
+	projects, paginationResp, err := h.projectUseCase.GetAll(ctx, pagination)
 	if err != nil {
 		http.Error(w, "Failed to retrieve projects", http.StatusInternalServerError)
 		return
 	}
 
+	response := map[string]interface{}{
+		"data":       projects,
+		"pagination": paginationResp,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(projects)
+	json.NewEncoder(w).Encode(response)
 }
 
 // GetProjectByID handles GET /projects/{id}
+// @Summary Get project by ID
+// @Description Get a specific project by its ID with all members
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param id path string true "Project ID" format(uuid)
+// @Success 200 {object} models.Project "Project details"
+// @Failure 400 {string} string "Invalid project ID"
+// @Failure 404 {string} string "Project not found"
+// @Router /projects/{id} [get]
 func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -66,6 +117,16 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 }
 
 // CreateProject handles POST /projects
+// @Summary Create a new project
+// @Description Create a new project with members and productivity range
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param project body CreateProjectRequest true "Project data"
+// @Success 201 {object} map[string]interface{} "Created project"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 500 {string} string "Failed to create project"
+// @Router /projects [post]
 func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) {
 	var req CreateProjectRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -73,14 +134,25 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if req.Name == "" || req.Email == "" {
-		http.Error(w, "Name and email are required", http.StatusBadRequest)
+	if req.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
 		return
 	}
 
+	// Convert member IDs to User objects
+	var members []models.User
+	for _, memberID := range req.MemberIDs {
+		if id, err := uuid.Parse(memberID); err == nil {
+			members = append(members, models.User{ID: id})
+		}
+	}
+
 	newProject := models.Project{
-		Name:  req.Name,
-		Email: req.Email,
+		Name:        req.Name,
+		Description: req.Description,
+		Color:       req.Color,
+		ProdRange:   req.ProdRange,
+		Members:     members,
 	}
 
 	ctx := r.Context()
@@ -91,9 +163,12 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response := map[string]interface{}{
-		"id":    projectID,
-		"name":  req.Name,
-		"email": req.Email,
+		"id":          projectID,
+		"name":        req.Name,
+		"description": req.Description,
+		"color":       req.Color,
+		"prod_range":  req.ProdRange,
+		"member_ids":  req.MemberIDs,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -102,6 +177,17 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 }
 
 // UpdateProject handles PUT /projects/{id}
+// @Summary Update project
+// @Description Update an existing project with new data
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param id path string true "Project ID" format(uuid)
+// @Param project body UpdateProjectRequest true "Updated project data"
+// @Success 200 {object} models.Project "Updated project"
+// @Failure 400 {string} string "Invalid project ID or request body"
+// @Failure 500 {string} string "Failed to update project"
+// @Router /projects/{id} [put]
 func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -118,15 +204,26 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if req.Name == "" || req.Email == "" {
-		http.Error(w, "Name and email are required", http.StatusBadRequest)
+	if req.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
 		return
 	}
 
+	// Convert member IDs to User objects
+	var members []models.User
+	for _, memberID := range req.MemberIDs {
+		if id, err := uuid.Parse(memberID); err == nil {
+			members = append(members, models.User{ID: id})
+		}
+	}
+
 	updatedProject := models.Project{
-		ID:    id,
-		Name:  req.Name,
-		Email: req.Email,
+		ID:          id,
+		Name:        req.Name,
+		Description: req.Description,
+		Color:       req.Color,
+		ProdRange:   req.ProdRange,
+		Members:     members,
 	}
 
 	ctx := r.Context()
@@ -141,6 +238,16 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 }
 
 // DeleteProject handles DELETE /projects/{id}
+// @Summary Delete project
+// @Description Delete a project by its ID
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param id path string true "Project ID" format(uuid)
+// @Success 204 "Project deleted successfully"
+// @Failure 400 {string} string "Invalid project ID"
+// @Failure 500 {string} string "Failed to delete project"
+// @Router /projects/{id} [delete]
 func (h *ProjectHandlers) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]

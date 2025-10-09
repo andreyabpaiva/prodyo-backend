@@ -31,6 +31,25 @@ services:
     networks:
       - prodyo-network
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prodyo-api
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-prodyo_db}
+      DB_USER: ${DB_USER:-prodyo_user}
+      DB_PASSWORD: ${DB_PASSWORD:-prodyo_password}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    networks:
+      - prodyo-network
+
 volumes:
   postgres_data:
   pgadmin_data:

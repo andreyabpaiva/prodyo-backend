@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"prodyo-backend/cmd/internal/config"
 	"prodyo-backend/cmd/internal/handlers"
+	"prodyo-backend/cmd/internal/migrations"
 	"prodyo-backend/cmd/internal/repositories"
 	"prodyo-backend/cmd/internal/usecases"
 	_ "prodyo-backend/docs"
@@ -32,15 +33,23 @@ import (
 func main() {
 	cfg := config.Load()
 
+	// Run migrations before starting the server
+	log.Println("Running database migrations...")
+	if err := migrations.RunMigrations(cfg.DSN(), "cmd/migrations"); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
 	db := repositories.NewDB(cfg.DSN())
 	defer db.Close()
 
 	repos := repositories.New(db)
 
 	projectUseCase := usecases.NewProjectUseCase(repos.Project)
+	userUseCase := usecases.NewUserUseCase(repos.User)
 
-	router := handlers.SetupRoutes(projectUseCase)
+	router := handlers.SetupRoutes(projectUseCase, userUseCase)
 
+	log.Println("Starting server on :8081")
 	if err := http.ListenAndServe(":8081", router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

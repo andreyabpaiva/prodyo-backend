@@ -1,19 +1,95 @@
-# Project API Endpoints
+# Prodyo Backend API
 
-This document describes the available API endpoints for the Project entity.
+A REST API for managing projects and users with automatic database migrations.
 
-## Base URL
+## Features
+
+- **Project Management**: Create, read, update, and delete projects
+- **User Management**: Create, read, update, and delete users
+- **Project Members**: Many-to-many relationship between projects and users
+- **Automatic Migrations**: Database migrations run automatically on startup
+- **Productivity Ranges**: Configure productivity thresholds for projects
+- **Docker Support**: Easy deployment with Docker Compose
+
+## Project Entity Structure
+
+The Project entity has the following attributes:
+- `id`: UUID (Primary Key)
+- `name`: string (Required)
+- `description`: string
+- `members`: User[] (Array of users)
+- `color`: string
+- `prodRange`: ProductivityRange
+  - `ok`: int
+  - `alert`: int
+  - `critical`: int
+- `createdAt`: Time
+- `updatedAt`: Time
+
+## User Entity Structure
+
+The User entity has the following attributes:
+- `id`: UUID (Primary Key)
+- `name`: string (Required)
+- `email`: string (Required, Unique)
+- `createdAt`: Time
+- `updatedAt`: Time
+
+## Quick Start
+
+### Using Docker Compose (Recommended)
+
+1. **Start the services:**
+```bash
+docker-compose up -d
+```
+
+This will start:
+- PostgreSQL database on port 5432
+- PgAdmin on port 8080
+- API server on port 8081
+
+2. **Access the API:**
+- API: http://localhost:8081
+- Swagger UI: http://localhost:8081/swagger/
+- PgAdmin: http://localhost:8080
+
+### Manual Setup
+
+1. **Install dependencies:**
+```bash
+go mod tidy
+```
+
+2. **Set environment variables:**
+```bash
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_USER=prodyo_user
+export DB_PASSWORD=prodyo_password
+export DB_NAME=prodyo_db
+```
+
+3. **Start PostgreSQL database**
+
+4. **Run the API:**
+```bash
+go run cmd/api/main.go
+```
+
+## API Endpoints
+
+### Base URL
 ```
 http://localhost:8081/api/v1
 ```
 
-## Endpoints
+### Project Endpoints
 
-### 1. Get All Projects
+#### Get All Projects
 - **Method**: `GET`
 - **URL**: `/projects`
-- **Description**: Retrieve all projects
-- **Response**: Array of project objects
+- **Description**: Retrieve all projects with their members
 
 **Example Response:**
 ```json
@@ -21,198 +97,189 @@ http://localhost:8081/api/v1
   {
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "name": "My Project",
-    "email": "project@example.com"
+    "description": "A sample project",
+    "color": "#FF5733",
+    "prod_range": {
+      "ok": 80,
+      "alert": 60,
+      "critical": 40
+    },
+    "members": [
+      {
+        "id": "456e7890-e89b-12d3-a456-426614174001",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-01-01T00:00:00Z"
+      }
+    ],
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
   }
 ]
 ```
 
-### 2. Get Project by ID
+#### Get Project by ID
 - **Method**: `GET`
 - **URL**: `/projects/{id}`
 - **Description**: Retrieve a specific project by its ID
-- **Parameters**: 
-  - `id` (path): UUID of the project
-- **Response**: Project object
 
-**Example Response:**
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "name": "My Project",
-  "email": "project@example.com"
-}
-```
-
-### 3. Create Project
+#### Create Project
 - **Method**: `POST`
 - **URL**: `/projects`
 - **Description**: Create a new project
-- **Request Body**:
-```json
-{
-  "name": "My New Project",
-  "email": "newproject@example.com"
-}
-```
-- **Response**: Created project object with generated ID
 
-**Example Response:**
+**Request Body:**
 ```json
 {
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "name": "My New Project",
-  "email": "newproject@example.com"
+  "name": "New Project",
+  "description": "Project description",
+  "color": "#FF5733",
+  "prod_range": {
+    "ok": 80,
+    "alert": 60,
+    "critical": 40
+  },
+  "member_ids": ["456e7890-e89b-12d3-a456-426614174001"]
 }
 ```
 
-### 4. Update Project
+#### Update Project
 - **Method**: `PUT`
 - **URL**: `/projects/{id}`
 - **Description**: Update an existing project
-- **Parameters**: 
-  - `id` (path): UUID of the project to update
-- **Request Body**:
-```json
-{
-  "name": "Updated Project Name",
-  "email": "updated@example.com"
-}
-```
-- **Response**: Updated project object
 
-### 5. Delete Project
+#### Delete Project
 - **Method**: `DELETE`
 - **URL**: `/projects/{id}`
 - **Description**: Delete a project
-- **Parameters**: 
-  - `id` (path): UUID of the project to delete
-- **Response**: No content (204 status)
 
-### 6. Health Check
+### User Endpoints
+
+#### Get All Users
 - **Method**: `GET`
-- **URL**: `/health`
-- **Description**: Check if the API is running
-- **Response**:
+- **URL**: `/users`
+- **Description**: Retrieve all users
+
+#### Get User by ID
+- **Method**: `GET`
+- **URL**: `/users/{id}`
+- **Description**: Retrieve a specific user by ID
+
+#### Create User
+- **Method**: `POST`
+- **URL**: `/users`
+- **Description**: Create a new user
+
+**Request Body:**
 ```json
 {
-  "status": "healthy"
+  "name": "John Doe",
+  "email": "john@example.com"
 }
 ```
 
-## Error Responses
+#### Update User
+- **Method**: `PUT`
+- **URL**: `/users/{id}`
+- **Description**: Update an existing user
 
-All endpoints may return the following error responses:
+#### Delete User
+- **Method**: `DELETE`
+- **URL**: `/users/{id}`
+- **Description**: Delete a user
 
-- **400 Bad Request**: Invalid request data or malformed UUID
-- **404 Not Found**: Project not found
-- **500 Internal Server Error**: Server error
+### Health Check
+- **Method**: `GET`
+- **URL**: `/health`
+- **Description**: Check API health status
 
-## Swagger Documentation
+## Database Migrations
 
-The API includes interactive Swagger documentation that is automatically generated and served when the server starts.
+The API automatically runs database migrations on startup. Migrations are located in the `cmd/migrations/` directory:
 
-### Accessing Swagger UI
+1. `001_init_projects_table.up.sql` - Creates the initial projects table
+2. `002_create_users_table.up.sql` - Creates the users table
+3. `003_update_projects_table.up.sql` - Updates projects table to add members relationship
 
-Once the server is running, you can access the Swagger UI at:
-```
-http://localhost:8081/swagger/index.html
-```
+### Adding New Migrations
 
-The Swagger UI provides:
-- Interactive API documentation
-- Try-it-out functionality for all endpoints
-- Request/response examples
-- Schema definitions
-- Authentication testing (if implemented)
+To add a new migration:
 
-### Regenerating Documentation
+1. Create a new migration file in `cmd/migrations/` with the format:
+   - `{number}_{description}.up.sql`
+   - `{number}_{description}.down.sql`
 
-If you make changes to the API annotations, regenerate the Swagger documentation:
+2. The migration will run automatically on the next API startup
 
-```bash
-swag init -g cmd/api/main.go -o docs
-```
+## Testing
 
-## Docker Setup
-
-This project includes Docker configuration for PostgreSQL database and pgAdmin for database management.
-
-### Prerequisites
-
-- Docker and Docker Compose installed on your system
-
-### Starting the Database Services
-
-1. **Start PostgreSQL and pgAdmin:**
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Check if services are running:**
-   ```bash
-   docker-compose ps
-   ```
-
-### Database Access
-
-- **PostgreSQL Database:**
-  - Host: `localhost`
-  - Port: `5432`
-  - Database: `prodyo_db`
-  - Username: `prodyo_user`
-  - Password: `prodyo_password`
-
-- **pgAdmin Web Interface:**
-  - URL: `http://localhost:8080`
-  - Email: `admin@prodyo.com`
-  - Password: `admin123`
-
-### Connecting to Database in pgAdmin
-
-1. Open pgAdmin at `http://localhost:8080`
-2. Login with the credentials above
-3. Right-click "Servers" → "Create" → "Server"
-4. In the "General" tab, enter a name (e.g., "Prodyo DB")
-5. In the "Connection" tab, enter:
-   - Host name/address: `postgres` (use the Docker service name)
-   - Port: `5432`
-   - Username: `prodyo_user`
-   - Password: `prodyo_password`
-6. Click "Save"
-
-### Environment Configuration
-
-The project uses environment variables for database configuration. You can modify the `.env` file to change database settings:
+Use the provided test script to test the API:
 
 ```bash
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=prodyo_user
-DB_PASSWORD=prodyo_password
-DB_NAME=prodyo_db
+./test_api.sh
 ```
 
-### Stopping Services
-
-To stop the database services:
+Make sure you have `jq` installed for JSON formatting:
 ```bash
-docker-compose down
+# On Ubuntu/Debian
+sudo apt-get install jq
+
+# On macOS
+brew install jq
+
+# On Windows (with Chocolatey)
+choco install jq
 ```
 
-To stop and remove all data (volumes):
-```bash
-docker-compose down -v
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_HOST` | `postgres` | Database host |
+| `DB_PORT` | `5432` | Database port |
+| `DB_USER` | `prodyo_user` | Database username |
+| `DB_PASSWORD` | `prodyo_password` | Database password |
+| `DB_NAME` | `prodyo_db` | Database name |
+
+## Development
+
+### Project Structure
+```
+prodyo-backend/
+├── cmd/
+│   ├── api/
+│   │   └── main.go
+│   └── migrations/
+│       ├── 001_init_projects_table.up.sql
+│       ├── 001_init_projects_table.down.sql
+│       ├── 002_create_users_table.up.sql
+│       ├── 002_create_users_table.down.sql
+│       ├── 003_update_projects_table.up.sql
+│       └── 003_update_projects_table.down.sql
+├── cmd/internal/
+│   ├── config/
+│   ├── handlers/
+│   ├── migrations/
+│   ├── models/
+│   ├── repositories/
+│   └── usecases/
+├── docs/
+├── docker-compose.yml
+├── Dockerfile
+└── go.mod
 ```
 
-## Running the API
+### Adding New Features
 
-To start the API server:
+1. Create the model in `cmd/internal/models/`
+2. Create the repository in `cmd/internal/repositories/`
+3. Create the use case in `cmd/internal/usecases/`
+4. Create the handler in `cmd/internal/handlers/`
+5. Add routes in `cmd/internal/handlers/routes.go`
+6. Create database migration in `cmd/migrations/`
+7. Update `cmd/internal/repositories/repositories.go` to include new repository
 
-```bash
-go run cmd/api/main.go
-```
+## License
 
-The server will start on port 8081 by default and will display all available endpoints including the Swagger UI.
-
-**Note:** Make sure the PostgreSQL database is running (via Docker Compose) before starting the API server.
+MIT
