@@ -16,14 +16,12 @@ func SetupRoutes(projectUseCase *usecases.ProjectUseCase, userUseCase *usecases.
 
 	api := router.PathPrefix("/api/v1").Subrouter()
 
-	// Project routes
 	api.HandleFunc("/projects", projectHandlers.GetAllProjects).Methods("GET")
 	api.HandleFunc("/projects", projectHandlers.CreateProject).Methods("POST")
 	api.HandleFunc("/projects/{id}", projectHandlers.GetProjectByID).Methods("GET")
 	api.HandleFunc("/projects/{id}", projectHandlers.UpdateProject).Methods("PUT")
 	api.HandleFunc("/projects/{id}", projectHandlers.DeleteProject).Methods("DELETE")
 
-	// User routes
 	api.HandleFunc("/users", userHandlers.GetAllUsers).Methods("GET")
 	api.HandleFunc("/users", userHandlers.CreateUser).Methods("POST")
 	api.HandleFunc("/users/{id}", userHandlers.GetUserByID).Methods("GET")
