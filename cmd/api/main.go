@@ -33,7 +33,6 @@ import (
 func main() {
 	cfg := config.Load()
 
-	// Run migrations before starting the server
 	log.Println("Running database migrations...")
 	if err := migrations.RunMigrations(cfg.DSN(), "cmd/migrations"); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
@@ -49,8 +48,10 @@ func main() {
 
 	router := handlers.SetupRoutes(projectUseCase, userUseCase)
 
+	handler := handlers.CorsMiddleware(router)
+
 	log.Println("Starting server on :8081")
-	if err := http.ListenAndServe(":8081", router); err != nil {
+	if err := http.ListenAndServe(":8081", handler); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
