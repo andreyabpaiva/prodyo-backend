@@ -14,7 +14,6 @@ func NewDB(dsn string) *pgxpool.Pool {
 		log.Fatalf("❌ erro ao parsear configuração do banco: %v", err)
 	}
 
-	// Optimize connection pool settings for performance
 	config.MaxConns = 25                      // Maximum number of connections
 	config.MinConns = 5                       // Minimum number of connections
 	config.MaxConnLifetime = time.Hour        // Maximum connection lifetime
@@ -23,14 +22,13 @@ func NewDB(dsn string) *pgxpool.Pool {
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Fatalf("❌ erro ao conectar no banco: %v", err)
+		log.Fatalf("Error connecting to the database: %v", err)
 	}
 
-	// Test the connection
 	if err := pool.Ping(context.Background()); err != nil {
-		log.Fatalf("❌ erro ao testar conexão com banco: %v", err)
+		log.Fatalf("Error testing database connection: %v", err)
 	}
 
-	log.Println("✅ Conexão com banco de dados estabelecida com sucesso")
+	log.Println("Successfully connected to the database")
 	return pool
 }

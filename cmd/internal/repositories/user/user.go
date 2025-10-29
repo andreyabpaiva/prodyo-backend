@@ -23,7 +23,6 @@ func New(db *pgxpool.Pool) *Repository {
 }
 
 func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationRequest) ([]models.User, models.PaginationResponse, error) {
-	// First, get total count
 	countQuery := `SELECT COUNT(*) FROM users`
 	var total int64
 	err := r.db.QueryRow(ctx, countQuery).Scan(&total)
@@ -31,9 +30,8 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 		return nil, models.PaginationResponse{}, err
 	}
 
-	// Then get paginated results
 	query := `
-		SELECT id, name, email, created_at, updated_at
+		SELECT id, name, email, project_id, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
@@ -51,6 +49,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 			&u.ID,
 			&u.Name,
 			&u.Email,
+			&u.ProjectID,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 		); err != nil {
@@ -69,7 +68,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.User, error) {
 	const query = `
-		SELECT id, name, email, created_at, updated_at
+		SELECT id, name, email, project_id, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -78,6 +77,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.User, er
 		&u.ID,
 		&u.Name,
 		&u.Email,
+		&u.ProjectID,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
@@ -92,7 +92,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.User, er
 
 func (r *Repository) GetByEmail(ctx context.Context, email string) (models.User, error) {
 	const query = `
-		SELECT id, name, email, created_at, updated_at
+		SELECT id, name, email, project_id, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -101,6 +101,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (models.User,
 		&u.ID,
 		&u.Name,
 		&u.Email,
+		&u.ProjectID,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)

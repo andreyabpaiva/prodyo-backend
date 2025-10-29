@@ -627,6 +627,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "project_id": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 }

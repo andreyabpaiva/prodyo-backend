@@ -10,7 +10,6 @@ import (
 type Repository struct {
 	Project *project.Repository
 	User    *user.Repository
-	// Adicione outros repositórios aqui
 }
 
 func New(db *pgxpool.Pool) *Repository {

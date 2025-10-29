@@ -45,7 +45,6 @@ type UpdateUserRequest struct {
 func (h *UserHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Parse pagination parameters
 	pagination := models.PaginationRequest{
 		Page:     1,
 		PageSize: 20,
