@@ -988,6 +988,8 @@ paths:
           description: Internal server error
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get all projects
       tags:
       - projects
@@ -1018,6 +1020,8 @@ paths:
           description: Failed to create project
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Create a new project
       tags:
       - projects
@@ -1046,6 +1050,8 @@ paths:
           description: Failed to delete project
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Delete project
       tags:
       - projects
@@ -1075,6 +1081,8 @@ paths:
           description: Project not found
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get project by ID
       tags:
       - projects
@@ -1110,6 +1118,8 @@ paths:
           description: Failed to update project
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Update project
       tags:
       - projects

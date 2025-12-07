@@ -43,6 +43,7 @@ type UpdateProjectRequest struct {
 // @Tags projects
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20) maximum(100)
 // @Success 200 {object} map[string]interface{} "Projects with pagination"
@@ -51,7 +52,6 @@ type UpdateProjectRequest struct {
 func (h *ProjectHandlers) GetAllProjects(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Parse pagination parameters
 	pagination := models.PaginationRequest{
 		Page:     1,
 		PageSize: 20,
@@ -90,6 +90,7 @@ func (h *ProjectHandlers) GetAllProjects(w http.ResponseWriter, r *http.Request)
 // @Tags projects
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Project ID" format(uuid)
 // @Success 200 {object} models.Project "Project details"
 // @Failure 400 {string} string "Invalid project ID"
@@ -122,6 +123,7 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 // @Tags projects
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param project body CreateProjectRequest true "Project data"
 // @Success 201 {object} map[string]interface{} "Created project"
 // @Failure 400 {string} string "Invalid request body"
@@ -139,7 +141,6 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Convert member IDs to User objects
 	var members []models.User
 	for _, memberID := range req.MemberIDs {
 		if id, err := uuid.Parse(memberID); err == nil {
@@ -182,6 +183,7 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 // @Tags projects
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Project ID" format(uuid)
 // @Param project body UpdateProjectRequest true "Updated project data"
 // @Success 200 {object} models.Project "Updated project"
@@ -243,6 +245,7 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 // @Tags projects
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Project ID" format(uuid)
 // @Success 204 "Project deleted successfully"
 // @Failure 400 {string} string "Invalid project ID"

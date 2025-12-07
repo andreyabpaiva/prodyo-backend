@@ -876,6 +876,11 @@ const docTemplate = `{
         },
         "/projects": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get a paginated list of all projects with their members",
                 "consumes": [
                     "application/json"
@@ -921,6 +926,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new project with members and productivity range",
                 "consumes": [
                     "application/json"
@@ -968,6 +978,11 @@ const docTemplate = `{
         },
         "/projects/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get a specific project by its ID with all members",
                 "consumes": [
                     "application/json"
@@ -1011,6 +1026,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update an existing project with new data",
                 "consumes": [
                     "application/json"
@@ -1063,6 +1083,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a project by its ID",
                 "consumes": [
                     "application/json"

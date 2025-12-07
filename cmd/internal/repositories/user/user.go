@@ -31,7 +31,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 	}
 
 	query := `
-		SELECT id, name, email, password_hash, project_id, created_at, updated_at
+		SELECT id, name, email, password_hash, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
@@ -50,7 +50,6 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 			&u.Name,
 			&u.Email,
 			&u.PasswordHash,
-			&u.ProjectID,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 		); err != nil {
