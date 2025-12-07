@@ -31,7 +31,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 	}
 
 	query := `
-		SELECT id, name, email, project_id, created_at, updated_at
+		SELECT id, name, email, password_hash, project_id, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
@@ -49,6 +49,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 			&u.ID,
 			&u.Name,
 			&u.Email,
+			&u.PasswordHash,
 			&u.ProjectID,
 			&u.CreatedAt,
 			&u.UpdatedAt,
@@ -68,7 +69,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.User, error) {
 	const query = `
-		SELECT id, name, email, project_id, created_at, updated_at
+		SELECT id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -77,7 +78,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.User, er
 		&u.ID,
 		&u.Name,
 		&u.Email,
-		&u.ProjectID,
+		&u.PasswordHash,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
@@ -92,7 +93,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.User, er
 
 func (r *Repository) GetByEmail(ctx context.Context, email string) (models.User, error) {
 	const query = `
-		SELECT id, name, email, project_id, created_at, updated_at
+		SELECT id, name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -101,7 +102,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (models.User,
 		&u.ID,
 		&u.Name,
 		&u.Email,
-		&u.ProjectID,
+		&u.PasswordHash,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
@@ -116,8 +117,8 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (models.User,
 
 func (r *Repository) Add(ctx context.Context, u models.User) error {
 	const query = `
-		INSERT INTO users (id, name, email)
-		VALUES ($1, $2, $3)
+		INSERT INTO users (id, name, email, password_hash)
+		VALUES ($1, $2, $3, $4)
 	`
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
@@ -127,6 +128,7 @@ func (r *Repository) Add(ctx context.Context, u models.User) error {
 		u.ID,
 		u.Name,
 		u.Email,
+		u.PasswordHash,
 	)
 	return err
 }
@@ -134,12 +136,13 @@ func (r *Repository) Add(ctx context.Context, u models.User) error {
 func (r *Repository) Update(ctx context.Context, u models.User) error {
 	const query = `
 		UPDATE users
-		SET name = $1, email = $2, updated_at = NOW()
-		WHERE id = $3
+		SET name = $1, email = $2, password_hash = COALESCE($3, password_hash), updated_at = NOW()
+		WHERE id = $4
 	`
 	cmd, err := r.db.Exec(ctx, query,
 		u.Name,
 		u.Email,
+		u.PasswordHash,
 		u.ID,
 	)
 	if err != nil {

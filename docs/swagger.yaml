@@ -1,5 +1,65 @@
 basePath: /api/v1
 definitions:
+  handlers.CreateActionRequest:
+    properties:
+      cause_id:
+        type: string
+      description:
+        type: string
+      indicator_id:
+        type: string
+    type: object
+  handlers.CreateBugRequest:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      number:
+        type: integer
+      task_id:
+        type: string
+    type: object
+  handlers.CreateCauseRequest:
+    properties:
+      description:
+        type: string
+      indicator_id:
+        type: string
+      metric:
+        type: string
+      productivity_level:
+        type: string
+    type: object
+  handlers.CreateImprovRequest:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      number:
+        type: integer
+      task_id:
+        type: string
+    type: object
+  handlers.CreateIndicatorRequest:
+    properties:
+      iteration_id:
+        type: string
+    type: object
+  handlers.CreateIterationRequest:
+    properties:
+      description:
+        type: string
+      end_at:
+        type: string
+      number:
+        type: integer
+      project_id:
+        type: string
+      start_at:
+        type: string
+    type: object
   handlers.CreateProjectRequest:
     properties:
       color:
@@ -17,6 +77,21 @@ definitions:
     required:
     - name
     type: object
+  handlers.CreateTaskRequest:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      iteration_id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      timer:
+        type: string
+    type: object
   handlers.CreateUserRequest:
     properties:
       email:
@@ -26,6 +101,44 @@ definitions:
     required:
     - email
     - name
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        properties:
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+        type: object
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
     type: object
   handlers.UpdateProjectRequest:
     properties:
@@ -44,6 +157,19 @@ definitions:
     required:
     - name
     type: object
+  handlers.UpdateTaskRequest:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      timer:
+        type: string
+    type: object
   handlers.UpdateUserRequest:
     properties:
       email:
@@ -54,6 +180,134 @@ definitions:
     - email
     - name
     type: object
+  models.Action:
+    properties:
+      cause:
+        $ref: '#/definitions/models.Cause'
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      indicator_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Bug:
+    properties:
+      assignee:
+        $ref: '#/definitions/models.User'
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      task_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Cause:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      indicator_id:
+        type: string
+      metric:
+        $ref: '#/definitions/models.MetricEnum'
+      productivity_level:
+        $ref: '#/definitions/models.ProductivityEnum'
+      updated_at:
+        type: string
+    type: object
+  models.Improv:
+    properties:
+      assignee:
+        $ref: '#/definitions/models.User'
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      task_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Indicator:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/models.Action'
+        type: array
+      causes:
+        items:
+          $ref: '#/definitions/models.Cause'
+        type: array
+      created_at:
+        type: string
+      id:
+        type: string
+      iteration_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Iteration:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      end_at:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      project_id:
+        type: string
+      start_at:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.MetricEnum:
+    enum:
+    - WorkVelocity
+    - ReworkIndex
+    - InstabilityIndex
+    type: string
+    x-enum-varnames:
+    - MetricWorkVelocity
+    - MetricReworkIndex
+    - MetricInstabilityIndex
+  models.ProductivityEnum:
+    enum:
+    - Ok
+    - Alert
+    - Critical
+    type: string
+    x-enum-varnames:
+    - ProductivityOk
+    - ProductivityAlert
+    - ProductivityCritical
   models.ProductivityRange:
     properties:
       alert:
@@ -81,6 +335,50 @@ definitions:
         type: string
       prod_range:
         $ref: '#/definitions/models.ProductivityRange'
+      updated_at:
+        type: string
+    type: object
+  models.StatusEnum:
+    enum:
+    - NotStarted
+    - InProgress
+    - Completed
+    type: string
+    x-enum-varnames:
+    - StatusNotStarted
+    - StatusInProgress
+    - StatusCompleted
+  models.Task:
+    properties:
+      assignee:
+        $ref: '#/definitions/models.User'
+      bugs:
+        items:
+          $ref: '#/definitions/models.Bug'
+        type: array
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      improvements:
+        items:
+          $ref: '#/definitions/models.Improv'
+        type: array
+      iteration_id:
+        type: string
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/models.StatusEnum'
+      tasks:
+        description: Sub-tasks
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      timer:
+        type: string
       updated_at:
         type: string
     type: object
@@ -116,6 +414,551 @@ info:
   title: Prodyo Backend API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return session token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "401":
+          description: Invalid email or password
+          schema:
+            type: string
+      summary: Login user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate user session token
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Logout successful
+        "401":
+          description: Authorization token required
+          schema:
+            type: string
+        "500":
+          description: Failed to logout
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email, password, and name
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "409":
+          description: User already exists
+          schema:
+            type: string
+        "500":
+          description: Failed to register user
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - auth
+  /bugs:
+    get:
+      consumes:
+      - application/json
+      description: Get all bugs for a specific task
+      parameters:
+      - description: Task ID
+        format: uuid
+        in: query
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bugs
+          schema:
+            items:
+              $ref: '#/definitions/models.Bug'
+            type: array
+        "400":
+          description: Invalid task_id
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve bugs
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all bugs
+      tags:
+      - bugs
+    post:
+      consumes:
+      - application/json
+      description: Create a new bug for a task
+      parameters:
+      - description: Bug data
+        in: body
+        name: bug
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateBugRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Bug created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create bug
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new bug
+      tags:
+      - bugs
+  /bugs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific bug by its ID
+      parameters:
+      - description: Bug ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bug details
+          schema:
+            $ref: '#/definitions/models.Bug'
+        "400":
+          description: Invalid bug ID
+          schema:
+            type: string
+        "404":
+          description: Bug not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get bug by ID
+      tags:
+      - bugs
+  /improvements:
+    get:
+      consumes:
+      - application/json
+      description: Get all improvements for a specific task
+      parameters:
+      - description: Task ID
+        format: uuid
+        in: query
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of improvements
+          schema:
+            items:
+              $ref: '#/definitions/models.Improv'
+            type: array
+        "400":
+          description: Invalid task_id
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve improvements
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all improvements
+      tags:
+      - improvements
+    post:
+      consumes:
+      - application/json
+      description: Create a new improvement for a task
+      parameters:
+      - description: Improvement data
+        in: body
+        name: improvement
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateImprovRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Improvement created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create improvement
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new improvement
+      tags:
+      - improvements
+  /improvements/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific improvement by its ID
+      parameters:
+      - description: Improvement ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Improvement details
+          schema:
+            $ref: '#/definitions/models.Improv'
+        "400":
+          description: Invalid improvement ID
+          schema:
+            type: string
+        "404":
+          description: Improvement not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get improvement by ID
+      tags:
+      - improvements
+  /indicators:
+    get:
+      consumes:
+      - application/json
+      description: Get indicator with causes and actions for a specific iteration
+      parameters:
+      - description: Iteration ID
+        format: uuid
+        in: query
+        name: iteration_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Indicator details
+          schema:
+            $ref: '#/definitions/models.Indicator'
+        "400":
+          description: Invalid iteration_id
+          schema:
+            type: string
+        "404":
+          description: Indicator not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get indicator
+      tags:
+      - indicators
+    post:
+      consumes:
+      - application/json
+      description: Create a new indicator for an iteration
+      parameters:
+      - description: Indicator data
+        in: body
+        name: indicator
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateIndicatorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Indicator created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create indicator
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new indicator
+      tags:
+      - indicators
+  /indicators/actions:
+    post:
+      consumes:
+      - application/json
+      description: Create a new action for an indicator
+      parameters:
+      - description: Action data
+        in: body
+        name: action
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateActionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Action created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "404":
+          description: Cause not found
+          schema:
+            type: string
+        "500":
+          description: Failed to create action
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new action
+      tags:
+      - indicators
+  /indicators/causes:
+    post:
+      consumes:
+      - application/json
+      description: Create a new cause for an indicator
+      parameters:
+      - description: Cause data
+        in: body
+        name: cause
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateCauseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Cause created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create cause
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new cause
+      tags:
+      - indicators
+  /iterations:
+    get:
+      consumes:
+      - application/json
+      description: Get all iterations for a specific project
+      parameters:
+      - description: Project ID
+        format: uuid
+        in: query
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of iterations
+          schema:
+            items:
+              $ref: '#/definitions/models.Iteration'
+            type: array
+        "400":
+          description: Invalid project_id
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve iterations
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all iterations
+      tags:
+      - iterations
+    post:
+      consumes:
+      - application/json
+      description: Create a new iteration for a project
+      parameters:
+      - description: Iteration data
+        in: body
+        name: iteration
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateIterationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Iteration created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create iteration
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new iteration
+      tags:
+      - iterations
+  /iterations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an iteration by its ID
+      parameters:
+      - description: Iteration ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Iteration deleted successfully
+        "400":
+          description: Invalid iteration ID
+          schema:
+            type: string
+        "500":
+          description: Failed to delete iteration
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete iteration
+      tags:
+      - iterations
+    get:
+      consumes:
+      - application/json
+      description: Get a specific iteration by its ID
+      parameters:
+      - description: Iteration ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Iteration details
+          schema:
+            $ref: '#/definitions/models.Iteration'
+        "400":
+          description: Invalid iteration ID
+          schema:
+            type: string
+        "404":
+          description: Iteration not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get iteration by ID
+      tags:
+      - iterations
   /projects:
     get:
       consumes:
@@ -270,6 +1113,170 @@ paths:
       summary: Update project
       tags:
       - projects
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get all tasks for a specific iteration
+      parameters:
+      - description: Iteration ID
+        format: uuid
+        in: query
+        name: iteration_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tasks
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "400":
+          description: Invalid iteration_id
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve tasks
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Create a new task for an iteration
+      parameters:
+      - description: Task data
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Task created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create task
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new task
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a task by its ID
+      parameters:
+      - description: Task ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Task deleted successfully
+        "400":
+          description: Invalid task ID
+          schema:
+            type: string
+        "500":
+          description: Failed to delete task
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete task
+      tags:
+      - tasks
+    get:
+      consumes:
+      - application/json
+      description: Get a specific task by its ID
+      parameters:
+      - description: Task ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task details
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid task ID
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get task by ID
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: Update an existing task
+      parameters:
+      - description: Task ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated task data
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated task
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid task ID or request body
+          schema:
+            type: string
+        "500":
+          description: Failed to update task
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update task
+      tags:
+      - tasks
   /users:
     get:
       consumes:
@@ -425,6 +1432,9 @@ paths:
       tags:
       - users
 securityDefinitions:
-  BasicAuth:
-    type: basic
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

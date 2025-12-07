@@ -13,7 +13,10 @@
 // @host localhost:8081
 // @BasePath /api/v1
 
-// @securityDefinitions.basic BasicAuth
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
@@ -43,10 +46,30 @@ func main() {
 
 	repos := repositories.New(db)
 
+	// Initialize use cases
 	projectUseCase := usecases.NewProjectUseCase(repos.Project)
 	userUseCase := usecases.NewUserUseCase(repos.User)
+	authUseCase := usecases.NewAuthUseCase(repos.User, repos.Session)
+	iterationUseCase := usecases.NewIterationUseCase(repos.Iteration)
+	taskUseCase := usecases.NewTaskUseCase(repos.Task)
+	improvUseCase := usecases.NewImprovUseCase(repos.Improv)
+	bugUseCase := usecases.NewBugUseCase(repos.Bug)
+	indicatorUseCase := usecases.NewIndicatorUseCase(repos.Indicator)
+	causeUseCase := usecases.NewCauseUseCase(repos.Cause)
+	actionUseCase := usecases.NewActionUseCase(repos.Action)
 
-	router := handlers.SetupRoutes(projectUseCase, userUseCase)
+	router := handlers.SetupRoutes(
+		projectUseCase,
+		userUseCase,
+		authUseCase,
+		iterationUseCase,
+		taskUseCase,
+		improvUseCase,
+		bugUseCase,
+		indicatorUseCase,
+		causeUseCase,
+		actionUseCase,
+	)
 
 	handler := handlers.CorsMiddleware(router)
 
