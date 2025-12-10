@@ -1312,10 +1312,16 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal server error
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get all users
       tags:
       - users
