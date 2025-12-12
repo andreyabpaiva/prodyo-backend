@@ -49,6 +49,7 @@ func SetupRoutes(
 	// Project routes
 	protected.HandleFunc("/projects", projectHandlers.GetAllProjects).Methods("GET")
 	protected.HandleFunc("/projects", projectHandlers.CreateProject).Methods("POST")
+	protected.HandleFunc("/projects/member/{userId}", projectHandlers.GetProjectsByMemberID).Methods("GET")
 	protected.HandleFunc("/projects/{id}", projectHandlers.GetProjectByID).Methods("GET")
 	protected.HandleFunc("/projects/{id}", projectHandlers.UpdateProject).Methods("PUT")
 	protected.HandleFunc("/projects/{id}", projectHandlers.DeleteProject).Methods("DELETE")

@@ -37,6 +37,7 @@ type UpdateUserRequest struct {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20) maximum(100)
 // @Success 200 {object} map[string]interface{} "Users with pagination"

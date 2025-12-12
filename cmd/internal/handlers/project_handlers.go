@@ -107,14 +107,26 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 	}
 
 	ctx := r.Context()
-	project, err := h.projectUseCase.GetByID(ctx, id)
+	project, iterationCount, err := h.projectUseCase.GetByID(ctx, id)
 	if err != nil {
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
 
+	response := map[string]interface{}{
+		"id":               project.ID,
+		"name":             project.Name,
+		"description":      project.Description,
+		"color":            project.Color,
+		"prod_range":       project.ProdRange,
+		"members":          project.Members,
+		"created_at":       project.CreatedAt,
+		"updated_at":       project.UpdatedAt,
+		"iterations_count": iterationCount,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(project)
+	json.NewEncoder(w).Encode(response)
 }
 
 // CreateProject handles POST /projects
@@ -269,4 +281,79 @@ func (h *ProjectHandlers) DeleteProject(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetProjectsByMemberID handles GET /projects/member/{userId}
+// @Summary Get projects by member ID
+// @Description Get all projects where the specified user is a member
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param userId path string true "User ID" format(uuid)
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20) maximum(100)
+// @Success 200 {object} map[string]interface{} "Projects with pagination"
+// @Failure 400 {string} string "Invalid user ID"
+// @Failure 500 {string} string "Internal server error"
+// @Router /projects/member/{userId} [get]
+func (h *ProjectHandlers) GetProjectsByMemberID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIDStr := vars["userId"]
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+
+	pagination := models.PaginationRequest{
+		Page:     1,
+		PageSize: 20,
+	}
+
+	if page := r.URL.Query().Get("page"); page != "" {
+		if p, err := strconv.Atoi(page); err == nil && p > 0 {
+			pagination.Page = p
+		}
+	}
+
+	if pageSize := r.URL.Query().Get("page_size"); pageSize != "" {
+		if ps, err := strconv.Atoi(pageSize); err == nil && ps > 0 && ps <= 100 {
+			pagination.PageSize = ps
+		}
+	}
+
+	projects, paginationResp, iterationCounts, err := h.projectUseCase.GetByMemberID(ctx, userID, pagination)
+	if err != nil {
+		http.Error(w, "Failed to retrieve projects", http.StatusInternalServerError)
+		return
+	}
+
+	// Add iteration_count to each project in the response
+	projectsWithCounts := make([]map[string]interface{}, len(projects))
+	for i, project := range projects {
+		projectMap := map[string]interface{}{
+			"id":               project.ID,
+			"name":             project.Name,
+			"description":      project.Description,
+			"color":            project.Color,
+			"prod_range":       project.ProdRange,
+			"members":          project.Members,
+			"created_at":       project.CreatedAt,
+			"updated_at":       project.UpdatedAt,
+			"iterations_count": iterationCounts[project.ID],
+		}
+		projectsWithCounts[i] = projectMap
+	}
+
+	response := map[string]interface{}{
+		"data":       projectsWithCounts,
+		"pagination": paginationResp,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

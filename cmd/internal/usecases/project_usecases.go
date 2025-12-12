@@ -21,7 +21,7 @@ func (u *ProjectUseCase) GetAll(ctx context.Context, pagination models.Paginatio
 	return u.repo.GetAll(ctx, pagination)
 }
 
-func (u *ProjectUseCase) GetByID(ctx context.Context, id uuid.UUID) (models.Project, error) {
+func (u *ProjectUseCase) GetByID(ctx context.Context, id uuid.UUID) (models.Project, int64, error) {
 	return u.repo.GetByID(ctx, id)
 }
 
@@ -43,4 +43,8 @@ func (u *ProjectUseCase) Update(ctx context.Context, project models.Project) err
 
 func (u *ProjectUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	return u.repo.Delete(ctx, id)
+}
+
+func (u *ProjectUseCase) GetByMemberID(ctx context.Context, userID uuid.UUID, pagination models.PaginationRequest) ([]models.Project, models.PaginationResponse, map[uuid.UUID]int64, error) {
+	return u.repo.GetByMemberID(ctx, userID, pagination)
 }
