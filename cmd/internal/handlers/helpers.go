@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"prodyo-backend/cmd/internal/models"
+	"strings"
 	"time"
 )
 
@@ -28,3 +30,27 @@ func parseTime(timeStr string) (time.Time, error) {
 	return time.Time{}, err
 }
 
+func normalizeStatus(statusStr string) models.StatusEnum {
+	if statusStr == "" {
+		return models.StatusNotStarted
+	}
+
+	lower := strings.ToLower(statusStr)
+	lower = strings.ReplaceAll(lower, "_", "")
+	lower = strings.ReplaceAll(lower, "-", "")
+
+	switch lower {
+	case "notstarted":
+		return models.StatusNotStarted
+	case "inprogress":
+		return models.StatusInProgress
+	case "completed":
+		return models.StatusCompleted
+	default:
+		status := models.StatusEnum(statusStr)
+		if status == models.StatusNotStarted || status == models.StatusInProgress || status == models.StatusCompleted {
+			return status
+		}
+		return models.StatusNotStarted
+	}
+}

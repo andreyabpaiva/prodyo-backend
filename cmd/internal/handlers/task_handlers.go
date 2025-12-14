@@ -146,10 +146,7 @@ func (h *TaskHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	status := models.StatusEnum(req.Status)
-	if status == "" {
-		status = models.StatusNotStarted
-	}
+	status := normalizeStatus(req.Status)
 
 	points := req.Points
 	if points == 0 {
@@ -228,10 +225,7 @@ func (h *TaskHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	status := models.StatusEnum(req.Status)
-	if status == "" {
-		status = models.StatusNotStarted
-	}
+	status := normalizeStatus(req.Status)
 
 	points := req.Points
 	if points == 0 {
