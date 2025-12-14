@@ -14,6 +14,7 @@ type Task struct {
 	Assignee     User        `json:"assignee"`
 	Status       StatusEnum  `json:"status"`
 	Timer        time.Time   `json:"timer"`
+	Points       int         `json:"points"`
 	Tasks        []Task      `json:"tasks,omitempty"` // Sub-tasks
 	Improvements []Improv    `json:"improvements,omitempty"`
 	Bugs         []Bug       `json:"bugs,omitempty"`

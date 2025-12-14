@@ -1546,6 +1546,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/project/{projectId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all users who are members of the specified project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get users by project ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users with pagination",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid project ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "description": "Get a specific user by its ID",
@@ -1711,6 +1777,9 @@ const docTemplate = `{
                 "number": {
                     "type": "integer"
                 },
+                "points": {
+                    "type": "integer"
+                },
                 "task_id": {
                     "type": "string"
                 }
@@ -1743,6 +1812,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "number": {
+                    "type": "integer"
+                },
+                "points": {
                     "type": "integer"
                 },
                 "task_id": {
@@ -1818,6 +1890,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "points": {
+                    "type": "integer"
                 },
                 "status": {
                     "type": "string"
@@ -1937,6 +2012,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "points": {
+                    "type": "integer"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -2001,6 +2079,9 @@ const docTemplate = `{
                 "number": {
                     "type": "integer"
                 },
+                "points": {
+                    "type": "integer"
+                },
                 "task_id": {
                     "type": "string"
                 },
@@ -2051,6 +2132,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "number": {
+                    "type": "integer"
+                },
+                "points": {
                     "type": "integer"
                 },
                 "task_id": {
@@ -2242,6 +2326,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "points": {
+                    "type": "integer"
                 },
                 "status": {
                     "$ref": "#/definitions/models.StatusEnum"

@@ -25,7 +25,7 @@ func New(db *pgxpool.Pool) *Repository {
 
 func (r *Repository) GetAll(ctx context.Context, taskID uuid.UUID) ([]models.Bug, error) {
 	const query = `
-		SELECT b.id, b.task_id, b.number, b.description, b.created_at, b.updated_at,
+		SELECT b.id, b.task_id, b.number, b.description, b.points, b.created_at, b.updated_at,
 		       u.id as assignee_id, u.name as assignee_name, u.email as assignee_email,
 		       u.created_at as assignee_created_at, u.updated_at as assignee_updated_at
 		FROM bugs b
@@ -51,6 +51,7 @@ func (r *Repository) GetAll(ctx context.Context, taskID uuid.UUID) ([]models.Bug
 			&bg.TaskID,
 			&bg.Number,
 			&bg.Description,
+			&bg.Points,
 			&bg.CreatedAt,
 			&bg.UpdatedAt,
 			&assigneeID,
@@ -80,7 +81,7 @@ func (r *Repository) GetAll(ctx context.Context, taskID uuid.UUID) ([]models.Bug
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Bug, error) {
 	const query = `
-		SELECT b.id, b.task_id, b.number, b.description, b.created_at, b.updated_at,
+		SELECT b.id, b.task_id, b.number, b.description, b.points, b.created_at, b.updated_at,
 		       u.id as assignee_id, u.name as assignee_name, u.email as assignee_email,
 		       u.created_at as assignee_created_at, u.updated_at as assignee_updated_at
 		FROM bugs b
@@ -97,6 +98,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Bug, err
 		&bg.TaskID,
 		&bg.Number,
 		&bg.Description,
+		&bg.Points,
 		&bg.CreatedAt,
 		&bg.UpdatedAt,
 		&assigneeID,
@@ -127,8 +129,8 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Bug, err
 
 func (r *Repository) Create(ctx context.Context, bug models.Bug) error {
 	const query = `
-		INSERT INTO bugs (id, task_id, assignee_id, number, description)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO bugs (id, task_id, assignee_id, number, description, points)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`
 	if bug.ID == uuid.Nil {
 		bug.ID = uuid.New()
@@ -141,13 +143,18 @@ func (r *Repository) Create(ctx context.Context, bug models.Bug) error {
 		assigneeID = nil
 	}
 
+	points := bug.Points
+	if points == 0 {
+		points = 1
+	}
+
 	_, err := r.db.Exec(ctx, query,
 		bug.ID,
 		bug.TaskID,
 		assigneeID,
 		bug.Number,
 		bug.Description,
+		points,
 	)
 	return err
 }
-

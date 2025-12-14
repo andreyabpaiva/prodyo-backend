@@ -12,6 +12,7 @@ type Bug struct {
 	Assignee    User      `json:"assignee"`
 	Number      int       `json:"number"`
 	Description string    `json:"description"`
+	Points      int       `json:"points"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

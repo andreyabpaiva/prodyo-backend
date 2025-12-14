@@ -57,6 +57,7 @@ func SetupRoutes(
 	// User routes
 	protected.HandleFunc("/users", userHandlers.GetAllUsers).Methods("GET")
 	protected.HandleFunc("/users", userHandlers.CreateUser).Methods("POST")
+	protected.HandleFunc("/users/project/{projectId}", userHandlers.GetUsersByProjectID).Methods("GET")
 	protected.HandleFunc("/users/{id}", userHandlers.GetUserByID).Methods("GET")
 	protected.HandleFunc("/users/{id}", userHandlers.UpdateUser).Methods("PUT")
 	protected.HandleFunc("/users/{id}", userHandlers.DeleteUser).Methods("DELETE")

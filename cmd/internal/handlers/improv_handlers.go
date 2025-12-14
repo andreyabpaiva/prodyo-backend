@@ -25,6 +25,7 @@ type CreateImprovRequest struct {
 	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
 	Number      int        `json:"number"`
 	Description string     `json:"description"`
+	Points      int        `json:"points"`
 }
 
 // GetAll handles GET /improvements
@@ -120,11 +121,17 @@ func (h *ImprovHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		assignee.ID = *req.AssigneeID
 	}
 
+	points := req.Points
+	if points == 0 {
+		points = 1
+	}
+
 	newImprov := models.Improv{
 		TaskID:      req.TaskID,
 		Assignee:    assignee,
 		Number:      req.Number,
 		Description: req.Description,
+		Points:      points,
 	}
 
 	ctx := r.Context()

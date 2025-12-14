@@ -48,3 +48,7 @@ func (u *UserUseCase) Update(ctx context.Context, user models.User) error {
 func (u *UserUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	return u.repo.Delete(ctx, id)
 }
+
+func (u *UserUseCase) GetByProjectID(ctx context.Context, projectID uuid.UUID, pagination models.PaginationRequest) ([]models.User, models.PaginationResponse, error) {
+	return u.repo.GetByProjectID(ctx, projectID, pagination)
+}

@@ -25,7 +25,7 @@ func New(db *pgxpool.Pool) *Repository {
 
 func (r *Repository) GetAll(ctx context.Context, taskID uuid.UUID) ([]models.Improv, error) {
 	const query = `
-		SELECT i.id, i.task_id, i.number, i.description, i.created_at, i.updated_at,
+		SELECT i.id, i.task_id, i.number, i.description, i.points, i.created_at, i.updated_at,
 		       u.id as assignee_id, u.name as assignee_name, u.email as assignee_email,
 		       u.created_at as assignee_created_at, u.updated_at as assignee_updated_at
 		FROM improvements i
@@ -51,6 +51,7 @@ func (r *Repository) GetAll(ctx context.Context, taskID uuid.UUID) ([]models.Imp
 			&imp.TaskID,
 			&imp.Number,
 			&imp.Description,
+			&imp.Points,
 			&imp.CreatedAt,
 			&imp.UpdatedAt,
 			&assigneeID,
@@ -80,7 +81,7 @@ func (r *Repository) GetAll(ctx context.Context, taskID uuid.UUID) ([]models.Imp
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Improv, error) {
 	const query = `
-		SELECT i.id, i.task_id, i.number, i.description, i.created_at, i.updated_at,
+		SELECT i.id, i.task_id, i.number, i.description, i.points, i.created_at, i.updated_at,
 		       u.id as assignee_id, u.name as assignee_name, u.email as assignee_email,
 		       u.created_at as assignee_created_at, u.updated_at as assignee_updated_at
 		FROM improvements i
@@ -97,6 +98,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Improv, 
 		&imp.TaskID,
 		&imp.Number,
 		&imp.Description,
+		&imp.Points,
 		&imp.CreatedAt,
 		&imp.UpdatedAt,
 		&assigneeID,
@@ -127,8 +129,8 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Improv, 
 
 func (r *Repository) Create(ctx context.Context, improv models.Improv) error {
 	const query = `
-		INSERT INTO improvements (id, task_id, assignee_id, number, description)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO improvements (id, task_id, assignee_id, number, description, points)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`
 	if improv.ID == uuid.Nil {
 		improv.ID = uuid.New()
@@ -141,13 +143,18 @@ func (r *Repository) Create(ctx context.Context, improv models.Improv) error {
 		assigneeID = nil
 	}
 
+	points := improv.Points
+	if points == 0 {
+		points = 1
+	}
+
 	_, err := r.db.Exec(ctx, query,
 		improv.ID,
 		improv.TaskID,
 		assigneeID,
 		improv.Number,
 		improv.Description,
+		points,
 	)
 	return err
 }
-

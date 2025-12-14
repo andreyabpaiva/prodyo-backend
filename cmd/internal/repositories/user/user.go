@@ -164,3 +164,55 @@ func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (r *Repository) GetByProjectID(ctx context.Context, projectID uuid.UUID, pagination models.PaginationRequest) ([]models.User, models.PaginationResponse, error) {
+	// First, get total count
+	countQuery := `
+		SELECT COUNT(DISTINCT u.id)
+		FROM users u
+		INNER JOIN project_members pm ON u.id = pm.user_id
+		WHERE pm.project_id = $1
+	`
+	var total int64
+	err := r.db.QueryRow(ctx, countQuery, projectID).Scan(&total)
+	if err != nil {
+		return nil, models.PaginationResponse{}, err
+	}
+
+	// Then get paginated results
+	query := `
+		SELECT u.id, u.name, u.email, u.created_at, u.updated_at
+		FROM users u
+		INNER JOIN project_members pm ON u.id = pm.user_id
+		WHERE pm.project_id = $1
+		ORDER BY u.name ASC
+		LIMIT $2 OFFSET $3
+	`
+	rows, err := r.db.Query(ctx, query, projectID, pagination.PageSize, pagination.GetOffset())
+	if err != nil {
+		return nil, models.PaginationResponse{}, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(
+			&u.ID,
+			&u.Name,
+			&u.Email,
+			&u.CreatedAt,
+			&u.UpdatedAt,
+		); err != nil {
+			return nil, models.PaginationResponse{}, err
+		}
+		users = append(users, u)
+	}
+
+	if rows.Err() != nil {
+		return nil, models.PaginationResponse{}, rows.Err()
+	}
+
+	paginationResp := models.NewPaginationResponse(pagination.Page, pagination.PageSize, total)
+	return users, paginationResp, nil
+}

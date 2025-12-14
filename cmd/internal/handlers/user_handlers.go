@@ -236,3 +236,60 @@ func (h *UserHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// GetUsersByProjectID handles GET /users/project/{projectId}
+// @Summary Get users by project ID
+// @Description Get all users who are members of the specified project
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param projectId path string true "Project ID" format(uuid)
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20) maximum(100)
+// @Success 200 {object} map[string]interface{} "Users with pagination"
+// @Failure 400 {string} string "Invalid project ID"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users/project/{projectId} [get]
+func (h *UserHandlers) GetUsersByProjectID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projectIDStr := vars["projectId"]
+
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	pagination := models.PaginationRequest{
+		Page:     1,
+		PageSize: 20,
+	}
+
+	if page := r.URL.Query().Get("page"); page != "" {
+		if p, err := strconv.Atoi(page); err == nil && p > 0 {
+			pagination.Page = p
+		}
+	}
+
+	if pageSize := r.URL.Query().Get("page_size"); pageSize != "" {
+		if ps, err := strconv.Atoi(pageSize); err == nil && ps > 0 && ps <= 100 {
+			pagination.PageSize = ps
+		}
+	}
+
+	ctx := r.Context()
+	users, paginationResp, err := h.userUseCase.GetByProjectID(ctx, projectID, pagination)
+	if err != nil {
+		http.Error(w, "Failed to retrieve users", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"data":       users,
+		"pagination": paginationResp,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}

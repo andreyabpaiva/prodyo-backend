@@ -28,6 +28,7 @@ type CreateTaskRequest struct {
 	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
 	Status      string     `json:"status"`
 	Timer       *string    `json:"timer,omitempty"`
+	Points      int        `json:"points"`
 }
 
 type UpdateTaskRequest struct {
@@ -36,6 +37,7 @@ type UpdateTaskRequest struct {
 	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
 	Status      string     `json:"status"`
 	Timer       *string    `json:"timer,omitempty"`
+	Points      int        `json:"points"`
 }
 
 // GetAll handles GET /tasks
@@ -149,6 +151,11 @@ func (h *TaskHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		status = models.StatusNotStarted
 	}
 
+	points := req.Points
+	if points == 0 {
+		points = 1
+	}
+
 	newTask := models.Task{
 		IterationID: req.IterationID,
 		Name:        req.Name,
@@ -156,6 +163,7 @@ func (h *TaskHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		Assignee:    assignee,
 		Status:      status,
 		Timer:       timer,
+		Points:      points,
 	}
 
 	ctx := r.Context()
@@ -225,6 +233,11 @@ func (h *TaskHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		status = models.StatusNotStarted
 	}
 
+	points := req.Points
+	if points == 0 {
+		points = 1
+	}
+
 	updatedTask := models.Task{
 		ID:          id,
 		Name:        req.Name,
@@ -232,6 +245,7 @@ func (h *TaskHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		Assignee:    assignee,
 		Status:      status,
 		Timer:       timer,
+		Points:      points,
 	}
 
 	ctx := r.Context()
