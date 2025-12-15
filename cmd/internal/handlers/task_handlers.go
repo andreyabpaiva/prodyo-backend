@@ -40,6 +40,15 @@ type UpdateTaskRequest struct {
 	Points      int        `json:"points"`
 }
 
+type PatchTaskRequest struct {
+	Name        *string    `json:"name,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
+	Status      *string    `json:"status,omitempty"`
+	Timer       *string    `json:"timer,omitempty"`
+	Points      *int       `json:"points,omitempty"`
+}
+
 // GetAll handles GET /tasks
 // @Summary Get all tasks
 // @Description Get all tasks for a specific iteration
@@ -283,4 +292,89 @@ func (h *TaskHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Patch handles PATCH /tasks/{id}
+// @Summary Partially update task
+// @Description Partially update an existing task (only provided fields will be updated)
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Task ID" format(uuid)
+// @Param task body PatchTaskRequest true "Partial task data"
+// @Success 200 {object} models.Task "Updated task"
+// @Failure 400 {string} string "Invalid task ID or request body"
+// @Failure 404 {string} string "Task not found"
+// @Failure 500 {string} string "Failed to update task"
+// @Router /tasks/{id} [patch]
+func (h *TaskHandlers) Patch(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+
+	existingTask, err := h.taskUseCase.GetByID(ctx, id)
+	if err != nil {
+		http.Error(w, "Task not found", http.StatusNotFound)
+		return
+	}
+
+	var req PatchTaskRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Name != nil {
+		existingTask.Name = *req.Name
+	}
+
+	if req.Description != nil {
+		existingTask.Description = *req.Description
+	}
+
+	if req.AssigneeID != nil {
+		existingTask.Assignee.ID = *req.AssigneeID
+	}
+
+	if req.Status != nil {
+		existingTask.Status = normalizeStatus(*req.Status)
+	}
+
+	if req.Timer != nil {
+		t, err := parseTime(*req.Timer)
+		if err == nil {
+			existingTask.Timer = t
+		}
+	}
+
+	if req.Points != nil {
+		points := *req.Points
+		if points == 0 {
+			points = 1
+		}
+		existingTask.Points = points
+	}
+
+	err = h.taskUseCase.Update(ctx, existingTask)
+	if err != nil {
+		http.Error(w, "Failed to update task", http.StatusInternalServerError)
+		return
+	}
+
+	updatedTask, err := h.taskUseCase.GetByID(ctx, id)
+	if err != nil {
+		http.Error(w, "Failed to retrieve updated task", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedTask)
 }

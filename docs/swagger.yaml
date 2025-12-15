@@ -132,6 +132,21 @@ definitions:
             type: string
         type: object
     type: object
+  handlers.PatchTaskRequest:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      points:
+        type: integer
+      status:
+        type: string
+      timer:
+        type: string
+    type: object
   handlers.RegisterRequest:
     properties:
       email:
@@ -1306,6 +1321,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Get task by ID
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: Partially update an existing task (only provided fields will be
+        updated)
+      parameters:
+      - description: Task ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Partial task data
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PatchTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated task
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid task ID or request body
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update task
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Partially update task
       tags:
       - tasks
     put:

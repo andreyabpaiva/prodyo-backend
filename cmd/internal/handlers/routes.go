@@ -73,6 +73,7 @@ func SetupRoutes(
 	protected.HandleFunc("/tasks", taskHandlers.Create).Methods("POST")
 	protected.HandleFunc("/tasks/{id}", taskHandlers.GetByID).Methods("GET")
 	protected.HandleFunc("/tasks/{id}", taskHandlers.Update).Methods("PUT")
+	protected.HandleFunc("/tasks/{id}", taskHandlers.Patch).Methods("PATCH")
 	protected.HandleFunc("/tasks/{id}", taskHandlers.Delete).Methods("DELETE")
 
 	// Improvement routes
@@ -117,7 +118,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			w.Header().Set("Vary", "Origin")
 		}
 
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
