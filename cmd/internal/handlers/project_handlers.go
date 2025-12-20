@@ -22,19 +22,17 @@ func NewProjectHandlers(projectUseCase *usecases.ProjectUseCase) *ProjectHandler
 }
 
 type CreateProjectRequest struct {
-	Name        string                   `json:"name" validate:"required"`
-	Description string                   `json:"description"`
-	Color       string                   `json:"color"`
-	ProdRange   models.ProductivityRange `json:"prod_range"`
-	MemberIDs   []string                 `json:"member_ids"`
+	Name        string   `json:"name" validate:"required"`
+	Description string   `json:"description"`
+	Color       string   `json:"color"`
+	MemberIDs   []string `json:"member_ids"`
 }
 
 type UpdateProjectRequest struct {
-	Name        string                   `json:"name" validate:"required"`
-	Description string                   `json:"description"`
-	Color       string                   `json:"color"`
-	ProdRange   models.ProductivityRange `json:"prod_range"`
-	MemberIDs   []string                 `json:"member_ids"`
+	Name        string   `json:"name" validate:"required"`
+	Description string   `json:"description"`
+	Color       string   `json:"color"`
+	MemberIDs   []string `json:"member_ids"`
 }
 
 // GetAllProjects handles GET /projects
@@ -118,7 +116,6 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 		"name":             project.Name,
 		"description":      project.Description,
 		"color":            project.Color,
-		"prod_range":       project.ProdRange,
 		"members":          project.Members,
 		"created_at":       project.CreatedAt,
 		"updated_at":       project.UpdatedAt,
@@ -131,7 +128,7 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 
 // CreateProject handles POST /projects
 // @Summary Create a new project
-// @Description Create a new project with members and productivity range
+// @Description Create a new project with members. Use POST /projects/{project_id}/indicator-ranges/default to set up indicator ranges.
 // @Tags projects
 // @Accept json
 // @Produce json
@@ -164,7 +161,6 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		Name:        req.Name,
 		Description: req.Description,
 		Color:       req.Color,
-		ProdRange:   req.ProdRange,
 		Members:     members,
 	}
 
@@ -180,7 +176,6 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		"name":        req.Name,
 		"description": req.Description,
 		"color":       req.Color,
-		"prod_range":  req.ProdRange,
 		"member_ids":  req.MemberIDs,
 	}
 
@@ -236,7 +231,6 @@ func (h *ProjectHandlers) UpdateProject(w http.ResponseWriter, r *http.Request) 
 		Name:        req.Name,
 		Description: req.Description,
 		Color:       req.Color,
-		ProdRange:   req.ProdRange,
 		Members:     members,
 	}
 
@@ -340,7 +334,6 @@ func (h *ProjectHandlers) GetProjectsByMemberID(w http.ResponseWriter, r *http.R
 			"name":             project.Name,
 			"description":      project.Description,
 			"color":            project.Color,
-			"prod_range":       project.ProdRange,
 			"members":          project.Members,
 			"created_at":       project.CreatedAt,
 			"updated_at":       project.UpdatedAt,

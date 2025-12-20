@@ -32,7 +32,7 @@ func (r *OptimizedRepository) GetAllOptimized(ctx context.Context, pagination mo
 	// Get paginated projects with lightweight member info
 	query := `
 		SELECT 
-			p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at,
+			p.id, p.name, p.description, p.color, p.created_at, p.updated_at,
 			COALESCE(
 				json_agg(
 					json_build_object(
@@ -46,7 +46,7 @@ func (r *OptimizedRepository) GetAllOptimized(ctx context.Context, pagination mo
 		FROM projects p
 		LEFT JOIN project_members pm ON p.id = pm.project_id
 		LEFT JOIN users u ON pm.user_id = u.id
-		GROUP BY p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at
+		GROUP BY p.id, p.name, p.description, p.color, p.created_at, p.updated_at
 		ORDER BY p.created_at DESC
 		LIMIT $1 OFFSET $2
 	`
@@ -66,7 +66,6 @@ func (r *OptimizedRepository) GetAllOptimized(ctx context.Context, pagination mo
 			&pr.Name,
 			&pr.Description,
 			&pr.Color,
-			&pr.ProdRange,
 			&pr.CreatedAt,
 			&pr.UpdatedAt,
 			&membersJSON,
@@ -93,7 +92,7 @@ func (r *OptimizedRepository) GetAllOptimized(ctx context.Context, pagination mo
 func (r *OptimizedRepository) GetByIDOptimized(ctx context.Context, id uuid.UUID) (models.Project, error) {
 	query := `
 		SELECT 
-			p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at,
+			p.id, p.name, p.description, p.color, p.created_at, p.updated_at,
 			COALESCE(
 				json_agg(
 					json_build_object(
@@ -108,7 +107,7 @@ func (r *OptimizedRepository) GetByIDOptimized(ctx context.Context, id uuid.UUID
 		LEFT JOIN project_members pm ON p.id = pm.project_id
 		LEFT JOIN users u ON pm.user_id = u.id
 		WHERE p.id = $1
-		GROUP BY p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at
+		GROUP BY p.id, p.name, p.description, p.color, p.created_at, p.updated_at
 	`
 
 	var pr models.Project
@@ -119,7 +118,6 @@ func (r *OptimizedRepository) GetByIDOptimized(ctx context.Context, id uuid.UUID
 		&pr.Name,
 		&pr.Description,
 		&pr.Color,
-		&pr.ProdRange,
 		&pr.CreatedAt,
 		&pr.UpdatedAt,
 		&membersJSON,

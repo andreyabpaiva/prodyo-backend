@@ -473,7 +473,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get indicator with causes and actions for a specific iteration",
+                "description": "Get indicator with causes, actions, and calculated productivity levels for a specific iteration",
                 "consumes": [
                     "application/json"
                 ],
@@ -669,6 +669,217 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Failed to create cause",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/indicators/ranges": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create or update the productivity range (OK, Alert, Critical min/max values) for a specific indicator type at project level",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Set productivity range for an indicator type",
+                "parameters": [
+                    {
+                        "description": "Range configuration",
+                        "name": "range",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SetRangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Range set successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to set range",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/indicators/ranges/{range_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a productivity range configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Delete a productivity range",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Range ID",
+                        "name": "range_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Range deleted successfully"
+                    },
+                    "400": {
+                        "description": "Invalid range_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete range",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/indicators/{indicator_id}/metrics": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the calculated values for speed, rework, and instability metrics",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Update calculated metric values",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Indicator ID",
+                        "name": "indicator_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Metric values",
+                        "name": "metrics",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateMetricValuesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated indicator",
+                        "schema": {
+                            "$ref": "#/definitions/models.Indicator"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update metrics",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/indicators/{indicator_id}/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a summary of all indicators with their values and productivity levels",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Get metric summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Indicator ID",
+                        "name": "indicator_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Metric summary",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.IndicatorMetricValue"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid indicator_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Indicator not found",
                         "schema": {
                             "type": "string"
                         }
@@ -931,7 +1142,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new project with members and productivity range",
+                "description": "Create a new project with members. Use POST /projects/{project_id}/indicator-ranges/default to set up indicator ranges.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1187,6 +1398,167 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Failed to delete project",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/indicator-ranges": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all productivity ranges configured for a project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Get all indicator ranges for a project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of ranges",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.IndicatorRange"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid project_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get ranges",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/indicator-ranges/default": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create default productivity ranges for all indicator types for a project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Create default indicator ranges for a project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Default ranges created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid project_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create default ranges",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/indicator-ranges/{indicator_type}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the productivity range for a specific indicator type of a project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Get range for a specific indicator type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Project ID",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Indicator type (SpeedPerIteration, ReworkPerIteration, InstabilityIndex)",
+                        "name": "indicator_type",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Range configuration",
+                        "schema": {
+                            "$ref": "#/definitions/models.IndicatorRange"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Range not found",
                         "schema": {
                             "type": "string"
                         }
@@ -1933,9 +2305,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "prod_range": {
-                    "$ref": "#/definitions/models.ProductivityRange"
                 }
             }
         },
@@ -2040,6 +2409,31 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ProductivityRangeRequest": {
+            "type": "object",
+            "properties": {
+                "alert": {
+                    "$ref": "#/definitions/handlers.RangeValuesRequest"
+                },
+                "critical": {
+                    "$ref": "#/definitions/handlers.RangeValuesRequest"
+                },
+                "ok": {
+                    "$ref": "#/definitions/handlers.RangeValuesRequest"
+                }
+            }
+        },
+        "handlers.RangeValuesRequest": {
+            "type": "object",
+            "properties": {
+                "max": {
+                    "type": "number"
+                },
+                "min": {
+                    "type": "number"
+                }
+            }
+        },
         "handlers.RegisterRequest": {
             "type": "object",
             "required": [
@@ -2057,6 +2451,35 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "handlers.SetRangeRequest": {
+            "type": "object",
+            "properties": {
+                "indicator_type": {
+                    "description": "SpeedPerIteration, ReworkPerIteration, InstabilityIndex",
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "range": {
+                    "$ref": "#/definitions/handlers.ProductivityRangeRequest"
+                }
+            }
+        },
+        "handlers.UpdateMetricValuesRequest": {
+            "type": "object",
+            "properties": {
+                "instability_value": {
+                    "type": "number"
+                },
+                "rework_value": {
+                    "type": "number"
+                },
+                "speed_value": {
+                    "type": "number"
                 }
             }
         },
@@ -2080,9 +2503,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "prod_range": {
-                    "$ref": "#/definitions/models.ProductivityRange"
                 }
             }
         },
@@ -2241,6 +2661,7 @@ const docTemplate = `{
                     }
                 },
                 "causes": {
+                    "description": "Associated causes and actions for improvement",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Cause"
@@ -2252,8 +2673,84 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "instability_level": {
+                    "$ref": "#/definitions/models.ProductivityEnum"
+                },
+                "instability_value": {
+                    "description": "improvements / tasks",
+                    "type": "number"
+                },
                 "iteration_id": {
                     "type": "string"
+                },
+                "rework_level": {
+                    "$ref": "#/definitions/models.ProductivityEnum"
+                },
+                "rework_value": {
+                    "description": "bugs / tasks",
+                    "type": "number"
+                },
+                "speed_level": {
+                    "description": "Calculated productivity levels based on project-level ranges\nThese are computed at runtime, not stored in DB",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ProductivityEnum"
+                        }
+                    ]
+                },
+                "speed_value": {
+                    "description": "Calculated metric values (stored in DB for performance)",
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.IndicatorEnum": {
+            "type": "string",
+            "enum": [
+                "SpeedPerIteration",
+                "ReworkPerIteration",
+                "InstabilityIndex"
+            ],
+            "x-enum-varnames": [
+                "IndicatorSpeedPerIteration",
+                "IndicatorReworkPerIteration",
+                "IndicatorInstabilityIndex"
+            ]
+        },
+        "models.IndicatorMetricValue": {
+            "type": "object",
+            "properties": {
+                "indicator_type": {
+                    "$ref": "#/definitions/models.IndicatorEnum"
+                },
+                "productivity_level": {
+                    "$ref": "#/definitions/models.ProductivityEnum"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.IndicatorRange": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "indicator_type": {
+                    "$ref": "#/definitions/models.IndicatorEnum"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "range": {
+                    "$ref": "#/definitions/models.ProductivityRange"
                 },
                 "updated_at": {
                     "type": "string"
@@ -2325,13 +2822,13 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "alert": {
-                    "type": "integer"
+                    "$ref": "#/definitions/models.RangeValues"
                 },
                 "critical": {
-                    "type": "integer"
+                    "$ref": "#/definitions/models.RangeValues"
                 },
                 "ok": {
-                    "type": "integer"
+                    "$ref": "#/definitions/models.RangeValues"
                 }
             }
         },
@@ -2359,11 +2856,19 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "prod_range": {
-                    "$ref": "#/definitions/models.ProductivityRange"
-                },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.RangeValues": {
+            "type": "object",
+            "properties": {
+                "max": {
+                    "type": "number"
+                },
+                "min": {
+                    "type": "number"
                 }
             }
         },

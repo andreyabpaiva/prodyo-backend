@@ -17,6 +17,7 @@ func SetupRoutes(
 	improvUseCase *usecases.ImprovUseCase,
 	bugUseCase *usecases.BugUseCase,
 	indicatorUseCase *usecases.IndicatorUseCase,
+	indicatorRangeUseCase *usecases.IndicatorRangeUseCase,
 	causeUseCase *usecases.CauseUseCase,
 	actionUseCase *usecases.ActionUseCase,
 ) *mux.Router {
@@ -30,7 +31,7 @@ func SetupRoutes(
 	taskHandlers := NewTaskHandlers(taskUseCase)
 	improvHandlers := NewImprovHandlers(improvUseCase)
 	bugHandlers := NewBugHandlers(bugUseCase)
-	indicatorHandlers := NewIndicatorHandlers(indicatorUseCase, causeUseCase, actionUseCase)
+	indicatorHandlers := NewIndicatorHandlers(indicatorUseCase, indicatorRangeUseCase, causeUseCase, actionUseCase)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
 
@@ -53,6 +54,11 @@ func SetupRoutes(
 	protected.HandleFunc("/projects/{id}", projectHandlers.GetProjectByID).Methods("GET")
 	protected.HandleFunc("/projects/{id}", projectHandlers.UpdateProject).Methods("PUT")
 	protected.HandleFunc("/projects/{id}", projectHandlers.DeleteProject).Methods("DELETE")
+
+	// Project indicator ranges routes (project-level)
+	protected.HandleFunc("/projects/{project_id}/indicator-ranges", indicatorHandlers.GetRanges).Methods("GET")
+	protected.HandleFunc("/projects/{project_id}/indicator-ranges/default", indicatorHandlers.CreateDefaultRanges).Methods("POST")
+	protected.HandleFunc("/projects/{project_id}/indicator-ranges/{indicator_type}", indicatorHandlers.GetRangeByIndicatorType).Methods("GET")
 
 	// User routes
 	protected.HandleFunc("/users", userHandlers.GetAllUsers).Methods("GET")
@@ -91,6 +97,10 @@ func SetupRoutes(
 	protected.HandleFunc("/indicators", indicatorHandlers.Create).Methods("POST")
 	protected.HandleFunc("/indicators/causes", indicatorHandlers.CreateCause).Methods("POST")
 	protected.HandleFunc("/indicators/actions", indicatorHandlers.CreateAction).Methods("POST")
+	protected.HandleFunc("/indicators/ranges", indicatorHandlers.SetRange).Methods("POST")
+	protected.HandleFunc("/indicators/ranges/{range_id}", indicatorHandlers.DeleteRange).Methods("DELETE")
+	protected.HandleFunc("/indicators/{indicator_id}/metrics", indicatorHandlers.UpdateMetricValues).Methods("PUT")
+	protected.HandleFunc("/indicators/{indicator_id}/summary", indicatorHandlers.GetMetricSummary).Methods("GET")
 
 	// Health check (public)
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

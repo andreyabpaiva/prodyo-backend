@@ -54,7 +54,8 @@ func main() {
 	taskUseCase := usecases.NewTaskUseCase(repos.Task)
 	improvUseCase := usecases.NewImprovUseCase(repos.Improv)
 	bugUseCase := usecases.NewBugUseCase(repos.Bug)
-	indicatorUseCase := usecases.NewIndicatorUseCase(repos.Indicator)
+	indicatorUseCase := usecases.NewIndicatorUseCase(repos.Indicator, repos.IndicatorRange)
+	indicatorRangeUseCase := usecases.NewIndicatorRangeUseCase(repos.IndicatorRange)
 	causeUseCase := usecases.NewCauseUseCase(repos.Cause)
 	actionUseCase := usecases.NewActionUseCase(repos.Action)
 
@@ -67,6 +68,7 @@ func main() {
 		improvUseCase,
 		bugUseCase,
 		indicatorUseCase,
+		indicatorRangeUseCase,
 		causeUseCase,
 		actionUseCase,
 	)

@@ -34,7 +34,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 	// Then get paginated results
 	query := `
 		SELECT 
-			p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at,
+			p.id, p.name, p.description, p.color, p.created_at, p.updated_at,
 			u.id as member_id, u.name as member_name, u.email as member_email, 
 			u.created_at as member_created_at, u.updated_at as member_updated_at
 		FROM projects p
@@ -62,7 +62,6 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 			&pr.Name,
 			&pr.Description,
 			&pr.Color,
-			&pr.ProdRange,
 			&pr.CreatedAt,
 			&pr.UpdatedAt,
 			&memberID,
@@ -112,7 +111,7 @@ func (r *Repository) GetAll(ctx context.Context, pagination models.PaginationReq
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Project, int64, error) {
 	const query = `
 		SELECT 
-			p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at,
+			p.id, p.name, p.description, p.color, p.created_at, p.updated_at,
 			u.id as member_id, u.name as member_name, u.email as member_email, 
 			u.created_at as member_created_at, u.updated_at as member_updated_at,
 			COALESCE(iter_counts.iteration_count, 0) as iteration_count
@@ -148,7 +147,6 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Project,
 				&pr.Name,
 				&pr.Description,
 				&pr.Color,
-				&pr.ProdRange,
 				&pr.CreatedAt,
 				&pr.UpdatedAt,
 				&memberID,
@@ -187,7 +185,6 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Project,
 				&pr.Name,
 				&pr.Description,
 				&pr.Color,
-				&pr.ProdRange,
 				&pr.CreatedAt,
 				&pr.UpdatedAt,
 				&memberID,
@@ -224,8 +221,8 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Project,
 
 func (r *Repository) Add(ctx context.Context, pr models.Project) error {
 	const query = `
-		INSERT INTO projects (id, name, description, color, prod_range)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO projects (id, name, description, color)
+		VALUES ($1, $2, $3, $4)
 	`
 	if pr.ID == uuid.Nil {
 		pr.ID = uuid.New()
@@ -236,7 +233,6 @@ func (r *Repository) Add(ctx context.Context, pr models.Project) error {
 		pr.Name,
 		pr.Description,
 		pr.Color,
-		pr.ProdRange,
 	)
 	if err != nil {
 		return err
@@ -249,14 +245,13 @@ func (r *Repository) Add(ctx context.Context, pr models.Project) error {
 func (r *Repository) Update(ctx context.Context, pr models.Project) error {
 	const query = `
 		UPDATE projects
-		SET name = $1, description = $2, color = $3, prod_range = $4, updated_at = NOW()
-		WHERE id = $5
+		SET name = $1, description = $2, color = $3, updated_at = NOW()
+		WHERE id = $4
 	`
 	cmd, err := r.db.Exec(ctx, query,
 		pr.Name,
 		pr.Description,
 		pr.Color,
-		pr.ProdRange,
 		pr.ID,
 	)
 	if err != nil {
@@ -398,7 +393,7 @@ func (r *Repository) GetByMemberID(ctx context.Context, userID uuid.UUID, pagina
 
 	query := `
 		SELECT 
-			p.id, p.name, p.description, p.color, p.prod_range, p.created_at, p.updated_at,
+			p.id, p.name, p.description, p.color, p.created_at, p.updated_at,
 			u.id as member_id, u.name as member_name, u.email as member_email, 
 			u.created_at as member_created_at, u.updated_at as member_updated_at,
 			COALESCE(iter_counts.iteration_count, 0) as iteration_count
@@ -434,7 +429,6 @@ func (r *Repository) GetByMemberID(ctx context.Context, userID uuid.UUID, pagina
 			&pr.Name,
 			&pr.Description,
 			&pr.Color,
-			&pr.ProdRange,
 			&pr.CreatedAt,
 			&pr.UpdatedAt,
 			&memberID,

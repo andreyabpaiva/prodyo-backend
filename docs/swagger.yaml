@@ -76,8 +76,6 @@ definitions:
         type: array
       name:
         type: string
-      prod_range:
-        $ref: '#/definitions/models.ProductivityRange'
     required:
     - name
     type: object
@@ -147,6 +145,22 @@ definitions:
       timer:
         type: string
     type: object
+  handlers.ProductivityRangeRequest:
+    properties:
+      alert:
+        $ref: '#/definitions/handlers.RangeValuesRequest'
+      critical:
+        $ref: '#/definitions/handlers.RangeValuesRequest'
+      ok:
+        $ref: '#/definitions/handlers.RangeValuesRequest'
+    type: object
+  handlers.RangeValuesRequest:
+    properties:
+      max:
+        type: number
+      min:
+        type: number
+    type: object
   handlers.RegisterRequest:
     properties:
       email:
@@ -161,6 +175,25 @@ definitions:
     - name
     - password
     type: object
+  handlers.SetRangeRequest:
+    properties:
+      indicator_type:
+        description: SpeedPerIteration, ReworkPerIteration, InstabilityIndex
+        type: string
+      project_id:
+        type: string
+      range:
+        $ref: '#/definitions/handlers.ProductivityRangeRequest'
+    type: object
+  handlers.UpdateMetricValuesRequest:
+    properties:
+      instability_value:
+        type: number
+      rework_value:
+        type: number
+      speed_value:
+        type: number
+    type: object
   handlers.UpdateProjectRequest:
     properties:
       color:
@@ -173,8 +206,6 @@ definitions:
         type: array
       name:
         type: string
-      prod_range:
-        $ref: '#/definitions/models.ProductivityRange'
     required:
     - name
     type: object
@@ -280,6 +311,7 @@ definitions:
           $ref: '#/definitions/models.Action'
         type: array
       causes:
+        description: Associated causes and actions for improvement
         items:
           $ref: '#/definitions/models.Cause'
         type: array
@@ -287,8 +319,61 @@ definitions:
         type: string
       id:
         type: string
+      instability_level:
+        $ref: '#/definitions/models.ProductivityEnum'
+      instability_value:
+        description: improvements / tasks
+        type: number
       iteration_id:
         type: string
+      rework_level:
+        $ref: '#/definitions/models.ProductivityEnum'
+      rework_value:
+        description: bugs / tasks
+        type: number
+      speed_level:
+        allOf:
+        - $ref: '#/definitions/models.ProductivityEnum'
+        description: |-
+          Calculated productivity levels based on project-level ranges
+          These are computed at runtime, not stored in DB
+      speed_value:
+        description: Calculated metric values (stored in DB for performance)
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.IndicatorEnum:
+    enum:
+    - SpeedPerIteration
+    - ReworkPerIteration
+    - InstabilityIndex
+    type: string
+    x-enum-varnames:
+    - IndicatorSpeedPerIteration
+    - IndicatorReworkPerIteration
+    - IndicatorInstabilityIndex
+  models.IndicatorMetricValue:
+    properties:
+      indicator_type:
+        $ref: '#/definitions/models.IndicatorEnum'
+      productivity_level:
+        $ref: '#/definitions/models.ProductivityEnum'
+      value:
+        type: number
+    type: object
+  models.IndicatorRange:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      indicator_type:
+        $ref: '#/definitions/models.IndicatorEnum'
+      project_id:
+        type: string
+      range:
+        $ref: '#/definitions/models.ProductivityRange'
       updated_at:
         type: string
     type: object
@@ -338,11 +423,11 @@ definitions:
   models.ProductivityRange:
     properties:
       alert:
-        type: integer
+        $ref: '#/definitions/models.RangeValues'
       critical:
-        type: integer
+        $ref: '#/definitions/models.RangeValues'
       ok:
-        type: integer
+        $ref: '#/definitions/models.RangeValues'
     type: object
   models.Project:
     properties:
@@ -360,10 +445,15 @@ definitions:
         type: array
       name:
         type: string
-      prod_range:
-        $ref: '#/definitions/models.ProductivityRange'
       updated_at:
         type: string
+    type: object
+  models.RangeValues:
+    properties:
+      max:
+        type: number
+      min:
+        type: number
     type: object
   models.StatusEnum:
     enum:
@@ -731,7 +821,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get indicator with causes and actions for a specific iteration
+      description: Get indicator with causes, actions, and calculated productivity
+        levels for a specific iteration
       parameters:
       - description: Iteration ID
         format: uuid
@@ -789,6 +880,80 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new indicator
+      tags:
+      - indicators
+  /indicators/{indicator_id}/metrics:
+    put:
+      consumes:
+      - application/json
+      description: Update the calculated values for speed, rework, and instability
+        metrics
+      parameters:
+      - description: Indicator ID
+        format: uuid
+        in: path
+        name: indicator_id
+        required: true
+        type: string
+      - description: Metric values
+        in: body
+        name: metrics
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateMetricValuesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated indicator
+          schema:
+            $ref: '#/definitions/models.Indicator'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "500":
+          description: Failed to update metrics
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update calculated metric values
+      tags:
+      - indicators
+  /indicators/{indicator_id}/summary:
+    get:
+      consumes:
+      - application/json
+      description: Get a summary of all indicators with their values and productivity
+        levels
+      parameters:
+      - description: Indicator ID
+        format: uuid
+        in: path
+        name: indicator_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Metric summary
+          schema:
+            items:
+              $ref: '#/definitions/models.IndicatorMetricValue'
+            type: array
+        "400":
+          description: Invalid indicator_id
+          schema:
+            type: string
+        "404":
+          description: Indicator not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get metric summary
       tags:
       - indicators
   /indicators/actions:
@@ -859,6 +1024,70 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new cause
+      tags:
+      - indicators
+  /indicators/ranges:
+    post:
+      consumes:
+      - application/json
+      description: Create or update the productivity range (OK, Alert, Critical min/max
+        values) for a specific indicator type at project level
+      parameters:
+      - description: Range configuration
+        in: body
+        name: range
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SetRangeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Range set successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to set range
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Set productivity range for an indicator type
+      tags:
+      - indicators
+  /indicators/ranges/{range_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a productivity range configuration
+      parameters:
+      - description: Range ID
+        format: uuid
+        in: path
+        name: range_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Range deleted successfully
+        "400":
+          description: Invalid range_id
+          schema:
+            type: string
+        "500":
+          description: Failed to delete range
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete a productivity range
       tags:
       - indicators
   /iterations:
@@ -1025,7 +1254,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new project with members and productivity range
+      description: Create a new project with members. Use POST /projects/{project_id}/indicator-ranges/default
+        to set up indicator ranges.
       parameters:
       - description: Project data
         in: body
@@ -1152,6 +1382,111 @@ paths:
       summary: Update project
       tags:
       - projects
+  /projects/{project_id}/indicator-ranges:
+    get:
+      consumes:
+      - application/json
+      description: Get all productivity ranges configured for a project
+      parameters:
+      - description: Project ID
+        format: uuid
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of ranges
+          schema:
+            items:
+              $ref: '#/definitions/models.IndicatorRange'
+            type: array
+        "400":
+          description: Invalid project_id
+          schema:
+            type: string
+        "500":
+          description: Failed to get ranges
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all indicator ranges for a project
+      tags:
+      - indicators
+  /projects/{project_id}/indicator-ranges/{indicator_type}:
+    get:
+      consumes:
+      - application/json
+      description: Get the productivity range for a specific indicator type of a project
+      parameters:
+      - description: Project ID
+        format: uuid
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Indicator type (SpeedPerIteration, ReworkPerIteration, InstabilityIndex)
+        in: path
+        name: indicator_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Range configuration
+          schema:
+            $ref: '#/definitions/models.IndicatorRange'
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "404":
+          description: Range not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get range for a specific indicator type
+      tags:
+      - indicators
+  /projects/{project_id}/indicator-ranges/default:
+    post:
+      consumes:
+      - application/json
+      description: Create default productivity ranges for all indicator types for
+        a project
+      parameters:
+      - description: Project ID
+        format: uuid
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Default ranges created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid project_id
+          schema:
+            type: string
+        "500":
+          description: Failed to create default ranges
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create default indicator ranges for a project
+      tags:
+      - indicators
   /projects/member/{userId}:
     get:
       consumes:
