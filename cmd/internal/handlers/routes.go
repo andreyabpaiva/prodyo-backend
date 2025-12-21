@@ -24,7 +24,7 @@ func SetupRoutes(
 	router := mux.NewRouter()
 
 	// Initialize handlers
-	projectHandlers := NewProjectHandlers(projectUseCase)
+	projectHandlers := NewProjectHandlers(projectUseCase, indicatorRangeUseCase)
 	userHandlers := NewUserHandlers(userUseCase)
 	authHandlers := NewAuthHandlers(authUseCase)
 	iterationHandlers := NewIterationHandlers(iterationUseCase)

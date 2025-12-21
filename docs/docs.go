@@ -1142,7 +1142,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new project with members. Use POST /projects/{project_id}/indicator-ranges/default to set up indicator ranges.",
+                "description": "Create a new project with members and optional custom indicator ranges. If indicator_ranges is not provided, default ranges will be created.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2297,6 +2297,13 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "indicator_ranges": {
+                    "description": "Optional: custom indicator ranges",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.IndicatorRangeRequest"
+                    }
+                },
                 "member_ids": {
                     "type": "array",
                     "items": {
@@ -2346,6 +2353,18 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.IndicatorRangeRequest": {
+            "type": "object",
+            "properties": {
+                "indicator_type": {
+                    "description": "SpeedPerIteration, ReworkPerIteration, InstabilityIndex",
+                    "type": "string"
+                },
+                "range": {
+                    "$ref": "#/definitions/handlers.ProductivityRangeRequest"
                 }
             }
         },

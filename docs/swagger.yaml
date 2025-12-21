@@ -70,6 +70,11 @@ definitions:
         type: string
       description:
         type: string
+      indicator_ranges:
+        description: 'Optional: custom indicator ranges'
+        items:
+          $ref: '#/definitions/handlers.IndicatorRangeRequest'
+        type: array
       member_ids:
         items:
           type: string
@@ -105,6 +110,14 @@ definitions:
     required:
     - email
     - name
+    type: object
+  handlers.IndicatorRangeRequest:
+    properties:
+      indicator_type:
+        description: SpeedPerIteration, ReworkPerIteration, InstabilityIndex
+        type: string
+      range:
+        $ref: '#/definitions/handlers.ProductivityRangeRequest'
     type: object
   handlers.LoginRequest:
     properties:
@@ -1254,8 +1267,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new project with members. Use POST /projects/{project_id}/indicator-ranges/default
-        to set up indicator ranges.
+      description: Create a new project with members and optional custom indicator
+        ranges. If indicator_ranges is not provided, default ranges will be created.
       parameters:
       - description: Project data
         in: body

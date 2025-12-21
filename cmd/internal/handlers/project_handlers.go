@@ -12,20 +12,28 @@ import (
 )
 
 type ProjectHandlers struct {
-	projectUseCase *usecases.ProjectUseCase
+	projectUseCase        *usecases.ProjectUseCase
+	indicatorRangeUseCase *usecases.IndicatorRangeUseCase
 }
 
-func NewProjectHandlers(projectUseCase *usecases.ProjectUseCase) *ProjectHandlers {
+func NewProjectHandlers(projectUseCase *usecases.ProjectUseCase, indicatorRangeUseCase *usecases.IndicatorRangeUseCase) *ProjectHandlers {
 	return &ProjectHandlers{
-		projectUseCase: projectUseCase,
+		projectUseCase:        projectUseCase,
+		indicatorRangeUseCase: indicatorRangeUseCase,
 	}
 }
 
+type IndicatorRangeRequest struct {
+	IndicatorType string                   `json:"indicator_type"`
+	Range         ProductivityRangeRequest `json:"range"`
+}
+
 type CreateProjectRequest struct {
-	Name        string   `json:"name" validate:"required"`
-	Description string   `json:"description"`
-	Color       string   `json:"color"`
-	MemberIDs   []string `json:"member_ids"`
+	Name            string                  `json:"name" validate:"required"`
+	Description     string                  `json:"description"`
+	Color           string                  `json:"color"`
+	MemberIDs       []string                `json:"member_ids"`
+	IndicatorRanges []IndicatorRangeRequest `json:"indicator_ranges"`
 }
 
 type UpdateProjectRequest struct {
@@ -128,7 +136,7 @@ func (h *ProjectHandlers) GetProjectByID(w http.ResponseWriter, r *http.Request)
 
 // CreateProject handles POST /projects
 // @Summary Create a new project
-// @Description Create a new project with members. Use POST /projects/{project_id}/indicator-ranges/default to set up indicator ranges.
+// @Description Create a new project with members and optional custom indicator ranges. If indicator_ranges is not provided, default ranges will be created.
 // @Tags projects
 // @Accept json
 // @Produce json
@@ -171,12 +179,42 @@ func (h *ProjectHandlers) CreateProject(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	var createdRanges []models.IndicatorRange
+	if len(req.IndicatorRanges) > 0 {
+		for _, rangeReq := range req.IndicatorRanges {
+			indicatorRange := models.IndicatorRange{
+				ProjectID:     projectID,
+				IndicatorType: models.IndicatorEnum(rangeReq.IndicatorType),
+				Range: models.ProductivityRange{
+					Ok:       models.RangeValues{Min: rangeReq.Range.Ok.Min, Max: rangeReq.Range.Ok.Max},
+					Alert:    models.RangeValues{Min: rangeReq.Range.Alert.Min, Max: rangeReq.Range.Alert.Max},
+					Critical: models.RangeValues{Min: rangeReq.Range.Critical.Min, Max: rangeReq.Range.Critical.Max},
+				},
+			}
+
+			rangeID, err := h.indicatorRangeUseCase.SetRange(ctx, indicatorRange)
+			if err != nil {
+				http.Error(w, "Failed to create indicator range", http.StatusInternalServerError)
+				return
+			}
+			indicatorRange.ID = rangeID
+			createdRanges = append(createdRanges, indicatorRange)
+		}
+	} else {
+		if err := h.indicatorRangeUseCase.CreateDefaultRanges(ctx, projectID); err != nil {
+			http.Error(w, "Failed to create default indicator ranges", http.StatusInternalServerError)
+			return
+		}
+		createdRanges, _ = h.indicatorRangeUseCase.GetByProjectID(ctx, projectID)
+	}
+
 	response := map[string]interface{}{
-		"id":          projectID,
-		"name":        req.Name,
-		"description": req.Description,
-		"color":       req.Color,
-		"member_ids":  req.MemberIDs,
+		"id":               projectID,
+		"name":             req.Name,
+		"description":      req.Description,
+		"color":            req.Color,
+		"member_ids":       req.MemberIDs,
+		"indicator_ranges": createdRanges,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
