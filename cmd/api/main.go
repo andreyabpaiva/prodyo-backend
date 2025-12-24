@@ -50,7 +50,7 @@ func main() {
 	projectUseCase := usecases.NewProjectUseCase(repos.Project)
 	userUseCase := usecases.NewUserUseCase(repos.User)
 	authUseCase := usecases.NewAuthUseCase(repos.User, repos.Session)
-	iterationUseCase := usecases.NewIterationUseCase(repos.Iteration)
+	iterationUseCase := usecases.NewIterationUseCase(repos.Iteration, repos.Task, repos.IndicatorRange)
 	taskUseCase := usecases.NewTaskUseCase(repos.Task)
 	improvUseCase := usecases.NewImprovUseCase(repos.Improv)
 	bugUseCase := usecases.NewBugUseCase(repos.Bug)

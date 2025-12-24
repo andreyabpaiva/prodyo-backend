@@ -71,7 +71,6 @@ definitions:
       description:
         type: string
       indicator_ranges:
-        description: 'Optional: custom indicator ranges'
         items:
           $ref: '#/definitions/handlers.IndicatorRangeRequest'
         type: array
@@ -114,7 +113,6 @@ definitions:
   handlers.IndicatorRangeRequest:
     properties:
       indicator_type:
-        description: SpeedPerIteration, ReworkPerIteration, InstabilityIndex
         type: string
       range:
         $ref: '#/definitions/handlers.ProductivityRangeRequest'
@@ -262,6 +260,14 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.AxisDefinition:
+    properties:
+      label:
+        type: string
+      type:
+        description: e.g., "TASK_SEQUENCE"
+        type: string
+    type: object
   models.Bug:
     properties:
       assignee:
@@ -297,6 +303,15 @@ definitions:
         $ref: '#/definitions/models.ProductivityEnum'
       updated_at:
         type: string
+    type: object
+  models.DataPoint:
+    properties:
+      status:
+        $ref: '#/definitions/models.ProductivityEnum'
+      x:
+        type: integer
+      "y":
+        type: number
     type: object
   models.Improv:
     properties:
@@ -356,6 +371,19 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.IndicatorAnalysisData:
+    properties:
+      indicatorType:
+        type: string
+      points:
+        items:
+          $ref: '#/definitions/models.DataPoint'
+        type: array
+      xAxis:
+        $ref: '#/definitions/models.AxisDefinition'
+      yAxis:
+        $ref: '#/definitions/models.AxisDefinition'
+    type: object
   models.IndicatorEnum:
     enum:
     - SpeedPerIteration
@@ -411,6 +439,15 @@ definitions:
           $ref: '#/definitions/models.Task'
         type: array
       updated_at:
+        type: string
+    type: object
+  models.IterationAnalysisResponse:
+    properties:
+      analysis:
+        additionalProperties:
+          $ref: '#/definitions/models.IndicatorAnalysisData'
+        type: object
+      iterationId:
         type: string
     type: object
   models.MetricEnum:
@@ -1228,6 +1265,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Get iteration by ID
+      tags:
+      - iterations
+  /iterations/{id}/analysis:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed analysis of iteration indicators with data points
+        for graphing
+      parameters:
+      - description: Iteration ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Iteration analysis with indicator data points
+          schema:
+            $ref: '#/definitions/models.IterationAnalysisResponse'
+        "400":
+          description: Invalid iteration ID
+          schema:
+            type: string
+        "404":
+          description: Iteration not found
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve analysis
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get iteration indicator analysis
       tags:
       - iterations
   /projects:

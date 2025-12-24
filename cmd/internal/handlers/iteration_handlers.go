@@ -188,3 +188,37 @@ func (h *IterationHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// GetIterationAnalysis handles GET /iterations/{id}/analysis
+// @Summary Get iteration indicator analysis
+// @Description Get detailed analysis of iteration indicators with data points for graphing
+// @Tags iterations
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Iteration ID" format(uuid)
+// @Success 200 {object} models.IterationAnalysisResponse "Iteration analysis with indicator data points"
+// @Failure 400 {string} string "Invalid iteration ID"
+// @Failure 404 {string} string "Iteration not found"
+// @Failure 500 {string} string "Failed to retrieve analysis"
+// @Router /iterations/{id}/analysis [get]
+func (h *IterationHandlers) GetIterationAnalysis(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "Invalid iteration ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	analysis, err := h.iterationUseCase.GetIterationAnalysis(ctx, id)
+	if err != nil {
+		http.Error(w, "Failed to retrieve analysis", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(analysis)
+}

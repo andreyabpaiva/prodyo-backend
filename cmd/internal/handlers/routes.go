@@ -73,6 +73,7 @@ func SetupRoutes(
 	protected.HandleFunc("/iterations", iterationHandlers.Create).Methods("POST")
 	protected.HandleFunc("/iterations/{id}", iterationHandlers.GetByID).Methods("GET")
 	protected.HandleFunc("/iterations/{id}", iterationHandlers.Delete).Methods("DELETE")
+	protected.HandleFunc("/iterations/{id}/analysis", iterationHandlers.GetIterationAnalysis).Methods("GET")
 
 	// Task routes
 	protected.HandleFunc("/tasks", taskHandlers.GetAll).Methods("GET")

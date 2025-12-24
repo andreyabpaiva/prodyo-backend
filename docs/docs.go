@@ -1085,6 +1085,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/iterations/{id}/analysis": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed analysis of iteration indicators with data points for graphing",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "iterations"
+                ],
+                "summary": "Get iteration indicator analysis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Iteration ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Iteration analysis with indicator data points",
+                        "schema": {
+                            "$ref": "#/definitions/models.IterationAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid iteration ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Iteration not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve analysis",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/projects": {
             "get": {
                 "security": [
@@ -2298,7 +2354,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "indicator_ranges": {
-                    "description": "Optional: custom indicator ranges",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.IndicatorRangeRequest"
@@ -2360,7 +2415,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "indicator_type": {
-                    "description": "SpeedPerIteration, ReworkPerIteration, InstabilityIndex",
                     "type": "string"
                 },
                 "range": {
@@ -2586,6 +2640,18 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AxisDefinition": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "e.g., \"TASK_SEQUENCE\"",
+                    "type": "string"
+                }
+            }
+        },
         "models.Bug": {
             "type": "object",
             "properties": {
@@ -2638,6 +2704,20 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.DataPoint": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "$ref": "#/definitions/models.ProductivityEnum"
+                },
+                "x": {
+                    "type": "integer"
+                },
+                "y": {
+                    "type": "number"
                 }
             }
         },
@@ -2726,6 +2806,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.IndicatorAnalysisData": {
+            "type": "object",
+            "properties": {
+                "indicatorType": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DataPoint"
+                    }
+                },
+                "xAxis": {
+                    "$ref": "#/definitions/models.AxisDefinition"
+                },
+                "yAxis": {
+                    "$ref": "#/definitions/models.AxisDefinition"
+                }
+            }
+        },
         "models.IndicatorEnum": {
             "type": "string",
             "enum": [
@@ -2807,6 +2907,20 @@ const docTemplate = `{
                     }
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.IterationAnalysisResponse": {
+            "type": "object",
+            "properties": {
+                "analysis": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.IndicatorAnalysisData"
+                    }
+                },
+                "iterationId": {
                     "type": "string"
                 }
             }
