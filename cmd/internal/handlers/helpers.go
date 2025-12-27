@@ -1,19 +1,33 @@
 package handlers
 
 import (
+	"fmt"
 	"prodyo-backend/cmd/internal/models"
 	"strings"
 	"time"
 )
 
+func parseDuration(durationStr string) (int64, error) {
+	d, err := time.ParseDuration(durationStr)
+	if err == nil {
+		return int64(d.Seconds()), nil
+	}
+
+	var seconds int64
+	_, err = fmt.Sscanf(durationStr, "%d", &seconds)
+	if err != nil {
+		return 0, fmt.Errorf("invalid duration format: %s (use format like '2h', '90m', or '7200' for seconds)", durationStr)
+	}
+
+	return seconds, nil
+}
+
 func parseTime(timeStr string) (time.Time, error) {
-	// Try RFC3339 format first
 	t, err := time.Parse(time.RFC3339, timeStr)
 	if err == nil {
 		return t, nil
 	}
 
-	// Try common formats
 	formats := []string{
 		"2006-01-02T15:04:05Z07:00",
 		"2006-01-02 15:04:05",

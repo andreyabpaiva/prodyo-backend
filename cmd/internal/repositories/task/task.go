@@ -87,7 +87,7 @@ func (r *Repository) scanTask(row interface {
 	var assigneeName, assigneeEmail *string
 	var assigneeCreatedAt, assigneeUpdatedAt *time.Time
 	var parentTaskID *uuid.UUID
-	var timer *time.Time
+	var timer *int64
 
 	err := row.Scan(
 		&t.ID,
@@ -144,16 +144,14 @@ func (r *Repository) Create(ctx context.Context, task models.Task) error {
 	}
 
 	var timer interface{}
-	if !task.Timer.IsZero() {
+	if task.Timer > 0 {
 		timer = task.Timer
 	} else {
 		timer = nil
 	}
 
 	var parentTaskID interface{}
-	// Check if this is a sub-task
 	if len(task.Tasks) > 0 {
-		// This would be handled differently - sub-tasks are separate records
 		parentTaskID = nil
 	}
 
@@ -190,7 +188,7 @@ func (r *Repository) Update(ctx context.Context, task models.Task) error {
 	}
 
 	var timer interface{}
-	if !task.Timer.IsZero() {
+	if task.Timer > 0 {
 		timer = task.Timer
 	} else {
 		timer = nil

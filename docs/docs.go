@@ -2647,7 +2647,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "e.g., \"TASK_SEQUENCE\"",
                     "type": "string"
                 }
             }
@@ -3065,7 +3064,8 @@ const docTemplate = `{
                     }
                 },
                 "timer": {
-                    "type": "string"
+                    "description": "Duration in seconds",
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"

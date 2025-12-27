@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"prodyo-backend/cmd/internal/models"
 	"prodyo-backend/cmd/internal/usecases"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -147,9 +146,9 @@ func (h *TaskHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		assignee.ID = *req.AssigneeID
 	}
 
-	var timer time.Time
+	var timer int64
 	if req.Timer != nil {
-		t, err := parseTime(*req.Timer)
+		t, err := parseDuration(*req.Timer)
 		if err == nil {
 			timer = t
 		}
@@ -226,9 +225,9 @@ func (h *TaskHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		assignee.ID = *req.AssigneeID
 	}
 
-	var timer time.Time
+	var timer int64
 	if req.Timer != nil {
-		t, err := parseTime(*req.Timer)
+		t, err := parseDuration(*req.Timer)
 		if err == nil {
 			timer = t
 		}
@@ -349,7 +348,7 @@ func (h *TaskHandlers) Patch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Timer != nil {
-		t, err := parseTime(*req.Timer)
+		t, err := parseDuration(*req.Timer)
 		if err == nil {
 			existingTask.Timer = t
 		}

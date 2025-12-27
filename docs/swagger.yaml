@@ -265,7 +265,6 @@ definitions:
       label:
         type: string
       type:
-        description: e.g., "TASK_SEQUENCE"
         type: string
     type: object
   models.Bug:
@@ -547,7 +546,8 @@ definitions:
           $ref: '#/definitions/models.Task'
         type: array
       timer:
-        type: string
+        description: Duration in seconds
+        type: integer
       updated_at:
         type: string
     type: object
