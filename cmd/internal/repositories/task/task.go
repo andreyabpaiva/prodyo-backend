@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"prodyo-backend/cmd/internal/models"
+	bugRepo "prodyo-backend/cmd/internal/repositories/bug"
+	improvRepo "prodyo-backend/cmd/internal/repositories/improv"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,11 +18,17 @@ var (
 )
 
 type Repository struct {
-	db *pgxpool.Pool
+	db         *pgxpool.Pool
+	bugRepo    *bugRepo.Repository
+	improvRepo *improvRepo.Repository
 }
 
 func New(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+	return &Repository{
+		db:         db,
+		bugRepo:    bugRepo.New(db),
+		improvRepo: improvRepo.New(db),
+	}
 }
 
 func (r *Repository) GetAll(ctx context.Context, iterationID uuid.UUID) ([]models.Task, error) {
@@ -47,8 +55,29 @@ func (r *Repository) GetAll(ctx context.Context, iterationID uuid.UUID) ([]model
 			return nil, err
 		}
 		t.Tasks = []models.Task{}
-		t.Improvements = []models.Improv{}
-		t.Bugs = []models.Bug{}
+
+		// Load bugs for this task
+		bugs, err := r.bugRepo.GetAll(ctx, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		if bugs == nil {
+			t.Bugs = []models.Bug{}
+		} else {
+			t.Bugs = bugs
+		}
+
+		// Load improvements for this task
+		improvements, err := r.improvRepo.GetAll(ctx, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		if improvements == nil {
+			t.Improvements = []models.Improv{}
+		} else {
+			t.Improvements = improvements
+		}
+
 		tasks = append(tasks, t)
 	}
 

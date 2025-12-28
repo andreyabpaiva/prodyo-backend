@@ -609,12 +609,6 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "404": {
-                        "description": "Cause not found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     "500": {
                         "description": "Failed to create action",
                         "schema": {
@@ -2245,13 +2239,25 @@ const docTemplate = `{
         "handlers.CreateActionRequest": {
             "type": "object",
             "properties": {
-                "cause_id": {
+                "assignee_id": {
+                    "type": "string"
+                },
+                "cause_description": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
                 },
+                "end_at": {
+                    "type": "string"
+                },
                 "indicator_id": {
+                    "type": "string"
+                },
+                "metric": {
+                    "type": "string"
+                },
+                "start_at": {
                     "type": "string"
                 }
             }
@@ -2620,6 +2626,9 @@ const docTemplate = `{
         "models.Action": {
             "type": "object",
             "properties": {
+                "assignee": {
+                    "$ref": "#/definitions/models.User"
+                },
                 "cause": {
                     "$ref": "#/definitions/models.Cause"
                 },
@@ -2629,10 +2638,16 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "end_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
                 "indicator_id": {
+                    "type": "string"
+                },
+                "start_at": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -3064,7 +3079,6 @@ const docTemplate = `{
                     }
                 },
                 "timer": {
-                    "description": "Duration in seconds",
                     "type": "integer"
                 },
                 "updated_at": {

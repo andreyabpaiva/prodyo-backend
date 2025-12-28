@@ -61,12 +61,12 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 	indicatorRange := ic.ranges[models.IndicatorSpeedPerIteration]
 
 	for i, task := range completedTasks {
-		duration := task.UpdatedAt.Sub(task.CreatedAt).Hours() / 24.0
-		if duration == 0 {
-			duration = 0.01
+		var speed float64
+		if task.Timer > 0 {
+			speed = float64(task.Points) / float64(task.Timer)
+		} else {
+			speed = 0
 		}
-
-		speed := float64(task.Points) / duration
 
 		status := ic.determineStatus(speed, indicatorRange)
 
@@ -95,7 +95,10 @@ func (ic *IndicatorCalculator) calculateReworkAnalysis(completedTasks []models.T
 	indicatorRange := ic.ranges[models.IndicatorReworkPerIteration]
 
 	for i, task := range completedTasks {
-		rework := float64(len(task.Bugs))
+		var rework float64
+		for _, bug := range task.Bugs {
+			rework += float64(bug.Points)
+		}
 
 		status := ic.determineStatus(rework, indicatorRange)
 
@@ -124,7 +127,10 @@ func (ic *IndicatorCalculator) calculateInstabilityAnalysis(completedTasks []mod
 	indicatorRange := ic.ranges[models.IndicatorInstabilityIndex]
 
 	for i, task := range completedTasks {
-		instability := float64(len(task.Improvements))
+		var instability float64
+		for _, improvement := range task.Improvements {
+			instability += float64(improvement.Points)
+		}
 
 		status := ic.determineStatus(instability, indicatorRange)
 

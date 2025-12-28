@@ -2,11 +2,19 @@ basePath: /api/v1
 definitions:
   handlers.CreateActionRequest:
     properties:
-      cause_id:
+      assignee_id:
+        type: string
+      cause_description:
         type: string
       description:
         type: string
+      end_at:
+        type: string
       indicator_id:
+        type: string
+      metric:
+        type: string
+      start_at:
         type: string
     type: object
   handlers.CreateBugRequest:
@@ -247,15 +255,21 @@ definitions:
     type: object
   models.Action:
     properties:
+      assignee:
+        $ref: '#/definitions/models.User'
       cause:
         $ref: '#/definitions/models.Cause'
       created_at:
         type: string
       description:
         type: string
+      end_at:
+        type: string
       id:
         type: string
       indicator_id:
+        type: string
+      start_at:
         type: string
       updated_at:
         type: string
@@ -546,7 +560,6 @@ definitions:
           $ref: '#/definitions/models.Task'
         type: array
       timer:
-        description: Duration in seconds
         type: integer
       updated_at:
         type: string
@@ -1028,10 +1041,6 @@ paths:
             type: object
         "400":
           description: Invalid request body
-          schema:
-            type: string
-        "404":
-          description: Cause not found
           schema:
             type: string
         "500":

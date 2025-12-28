@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"prodyo-backend/cmd/internal/models"
 	"prodyo-backend/cmd/internal/usecases"
@@ -220,5 +221,9 @@ func (h *IterationHandlers) GetIterationAnalysis(w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(analysis)
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(analysis); err != nil {
+		log.Printf("Failed to encode analysis response: %v", err)
+		return
+	}
 }

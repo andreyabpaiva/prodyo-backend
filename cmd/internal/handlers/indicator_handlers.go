@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"prodyo-backend/cmd/internal/models"
 	"prodyo-backend/cmd/internal/usecases"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -43,9 +44,13 @@ type CreateCauseRequest struct {
 }
 
 type CreateActionRequest struct {
-	IndicatorID uuid.UUID `json:"indicator_id"`
-	CauseID     uuid.UUID `json:"cause_id"`
-	Description string    `json:"description"`
+	IndicatorID      uuid.UUID  `json:"indicator_id"`
+	Metric           string     `json:"metric"`
+	CauseDescription string     `json:"cause_description"`
+	Description      string     `json:"description"`
+	StartAt          *time.Time `json:"start_at,omitempty"`
+	EndAt            *time.Time `json:"end_at,omitempty"`
+	AssigneeID       *uuid.UUID `json:"assignee_id,omitempty"`
 }
 
 // RangeValuesRequest represents min/max values for a productivity level
@@ -459,7 +464,6 @@ func (h *IndicatorHandlers) CreateCause(w http.ResponseWriter, r *http.Request) 
 // @Param action body CreateActionRequest true "Action data"
 // @Success 201 {object} map[string]interface{} "Action created successfully"
 // @Failure 400 {string} string "Invalid request body"
-// @Failure 404 {string} string "Cause not found"
 // @Failure 500 {string} string "Failed to create action"
 // @Router /indicators/actions [post]
 func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request) {
@@ -469,31 +473,48 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Get cause to include in action
 	ctx := r.Context()
-	causes, err := h.causeUseCase.Get(ctx, req.IndicatorID)
+
+	metric := models.MetricEnum(req.Metric)
+	if metric != models.MetricWorkVelocity &&
+		metric != models.MetricReworkIndex &&
+		metric != models.MetricInstabilityIndex {
+		http.Error(w, "Invalid metric. Must be WorkVelocity, ReworkIndex, or InstabilityIndex", http.StatusBadRequest)
+		return
+	}
+
+	newCause := models.Cause{
+		IndicatorID:       req.IndicatorID,
+		Metric:            metric,
+		Description:       req.CauseDescription,
+		ProductivityLevel: models.ProductivityCritical,
+	}
+
+	causeID, err := h.causeUseCase.Create(ctx, newCause)
 	if err != nil {
-		http.Error(w, "Failed to get causes", http.StatusInternalServerError)
+		http.Error(w, "Failed to create cause", http.StatusInternalServerError)
 		return
 	}
 
-	var cause models.Cause
-	for _, c := range causes {
-		if c.ID == req.CauseID {
-			cause = c
-			break
-		}
-	}
-
-	if cause.ID == uuid.Nil {
-		http.Error(w, "Cause not found", http.StatusNotFound)
-		return
-	}
+	newCause.ID = causeID
 
 	newAction := models.Action{
 		IndicatorID: req.IndicatorID,
-		Cause:       cause,
+		Cause:       newCause,
 		Description: req.Description,
+	}
+
+	if req.StartAt != nil {
+		newAction.StartAt = *req.StartAt
+	}
+	if req.EndAt != nil {
+		newAction.EndAt = *req.EndAt
+	}
+
+	if req.AssigneeID != nil {
+		newAction.Assignee = models.User{
+			ID: *req.AssigneeID,
+		}
 	}
 
 	actionID, err := h.actionUseCase.Create(ctx, newAction)
@@ -503,10 +524,15 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	response := map[string]interface{}{
-		"id":           actionID,
-		"indicator_id": req.IndicatorID,
-		"cause_id":     req.CauseID,
-		"description":  req.Description,
+		"id":                actionID,
+		"indicator_id":      req.IndicatorID,
+		"cause_id":          causeID,
+		"metric":            req.Metric,
+		"cause_description": req.CauseDescription,
+		"description":       req.Description,
+		"start_at":          req.StartAt,
+		"end_at":            req.EndAt,
+		"assignee_id":       req.AssigneeID,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
