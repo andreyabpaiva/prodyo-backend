@@ -16,6 +16,11 @@ func NewIndicatorRangeUseCase(repo *indicator_range.Repository) *IndicatorRangeU
 	return &IndicatorRangeUseCase{repo: repo}
 }
 
+// GetByID returns a single indicator range by its ID
+func (u *IndicatorRangeUseCase) GetByID(ctx context.Context, id uuid.UUID) (models.IndicatorRange, error) {
+	return u.repo.GetByID(ctx, id)
+}
+
 // GetByProjectID returns all indicator ranges for a project
 func (u *IndicatorRangeUseCase) GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]models.IndicatorRange, error) {
 	return u.repo.GetByProjectID(ctx, projectID)

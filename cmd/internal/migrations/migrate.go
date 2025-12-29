@@ -75,3 +75,39 @@ func CheckMigrationStatus(dsn string, migrationsPath string) (version uint, dirt
 	version, dirty, err = m.Version()
 	return version, dirty, err
 }
+
+// ForceVersion forces the migration version to a specific version
+// This is useful when a migration fails and leaves the database in a dirty state
+func ForceVersion(dsn string, migrationsPath string, version int) error {
+	// Open database connection
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close()
+
+	// Create postgres driver instance
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to create postgres driver: %w", err)
+	}
+
+	// Create migrate instance
+	m, err := migrate.NewWithDatabaseInstance(
+		fmt.Sprintf("file://%s", migrationsPath),
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
+	defer m.Close()
+
+	// Force version
+	if err := m.Force(version); err != nil {
+		return fmt.Errorf("failed to force version: %w", err)
+	}
+
+	log.Printf("Successfully forced migration version to %d\n", version)
+	return nil
+}

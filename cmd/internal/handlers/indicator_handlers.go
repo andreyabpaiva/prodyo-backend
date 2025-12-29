@@ -37,14 +37,14 @@ type CreateIndicatorRequest struct {
 }
 
 type CreateCauseRequest struct {
-	IndicatorID       uuid.UUID `json:"indicator_id"`
+	IndicatorRangeID  uuid.UUID `json:"indicator_range_id"`
 	Metric            string    `json:"metric"`
 	Description       string    `json:"description"`
 	ProductivityLevel string    `json:"productivity_level"`
 }
 
 type CreateActionRequest struct {
-	IndicatorID      uuid.UUID  `json:"indicator_id"`
+	IndicatorRangeID uuid.UUID  `json:"indicator_range_id"`
 	Metric           string     `json:"metric"`
 	CauseDescription string     `json:"cause_description"`
 	Description      string     `json:"description"`
@@ -112,12 +112,32 @@ func (h *IndicatorHandlers) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load causes and actions
-	causes, _ := h.causeUseCase.Get(ctx, indicator.ID)
-	actions, _ := h.actionUseCase.Get(ctx, indicator.ID)
+	// Get project ID to fetch indicator ranges
+	projectID, err := h.indicatorUseCase.GetProjectIDByIterationID(ctx, iterationID)
+	if err != nil {
+		http.Error(w, "Failed to get project ID", http.StatusInternalServerError)
+		return
+	}
 
-	indicator.Causes = causes
-	indicator.Actions = actions
+	// Get all indicator ranges for the project
+	ranges, err := h.indicatorRangeUseCase.GetByProjectID(ctx, projectID)
+	if err != nil {
+		http.Error(w, "Failed to get indicator ranges", http.StatusInternalServerError)
+		return
+	}
+
+	// Load causes and actions from all indicator ranges for this project
+	var allCauses []models.Cause
+	var allActions []models.Action
+	for _, r := range ranges {
+		causes, _ := h.causeUseCase.Get(ctx, r.ID)
+		actions, _ := h.actionUseCase.Get(ctx, r.ID)
+		allCauses = append(allCauses, causes...)
+		allActions = append(allActions, actions...)
+	}
+
+	indicator.Causes = allCauses
+	indicator.Actions = allActions
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(indicator)
@@ -428,7 +448,7 @@ func (h *IndicatorHandlers) CreateCause(w http.ResponseWriter, r *http.Request) 
 	}
 
 	newCause := models.Cause{
-		IndicatorID:       req.IndicatorID,
+		IndicatorRangeID:  req.IndicatorRangeID,
 		Metric:            models.MetricEnum(req.Metric),
 		Description:       req.Description,
 		ProductivityLevel: models.ProductivityEnum(req.ProductivityLevel),
@@ -443,7 +463,7 @@ func (h *IndicatorHandlers) CreateCause(w http.ResponseWriter, r *http.Request) 
 
 	response := map[string]interface{}{
 		"id":                 causeID,
-		"indicator_id":       req.IndicatorID,
+		"indicator_range_id": req.IndicatorRangeID,
 		"metric":             req.Metric,
 		"description":        req.Description,
 		"productivity_level": req.ProductivityLevel,
@@ -475,9 +495,9 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 
 	ctx := r.Context()
 
-	_, err := h.indicatorUseCase.GetByID(ctx, req.IndicatorID)
+	_, err := h.indicatorRangeUseCase.GetByID(ctx, req.IndicatorRangeID)
 	if err != nil {
-		http.Error(w, "Indicator not found. Please create an indicator first.", http.StatusNotFound)
+		http.Error(w, "Indicator range not found. Please create an indicator range first.", http.StatusNotFound)
 		return
 	}
 
@@ -490,7 +510,7 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	newCause := models.Cause{
-		IndicatorID:       req.IndicatorID,
+		IndicatorRangeID:  req.IndicatorRangeID,
 		Metric:            metric,
 		Description:       req.CauseDescription,
 		ProductivityLevel: models.ProductivityCritical,
@@ -505,9 +525,9 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 	newCause.ID = causeID
 
 	newAction := models.Action{
-		IndicatorID: req.IndicatorID,
-		Cause:       newCause,
-		Description: req.Description,
+		IndicatorRangeID: req.IndicatorRangeID,
+		Cause:            newCause,
+		Description:      req.Description,
 	}
 
 	if req.StartAt != nil {
@@ -530,15 +550,15 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	response := map[string]interface{}{
-		"id":                actionID,
-		"indicator_id":      req.IndicatorID,
-		"cause_id":          causeID,
-		"metric":            req.Metric,
-		"cause_description": req.CauseDescription,
-		"description":       req.Description,
-		"start_at":          req.StartAt,
-		"end_at":            req.EndAt,
-		"assignee_id":       req.AssigneeID,
+		"id":                 actionID,
+		"indicator_range_id": req.IndicatorRangeID,
+		"cause_id":           causeID,
+		"metric":             req.Metric,
+		"cause_description":  req.CauseDescription,
+		"description":        req.Description,
+		"start_at":           req.StartAt,
+		"end_at":             req.EndAt,
+		"assignee_id":        req.AssigneeID,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

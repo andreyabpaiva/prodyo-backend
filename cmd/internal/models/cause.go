@@ -8,7 +8,7 @@ import (
 
 type Cause struct {
 	ID                uuid.UUID        `json:"id"`
-	IndicatorID      uuid.UUID        `json:"indicator_id"`
+	IndicatorRangeID uuid.UUID        `json:"indicator_range_id"`
 	Metric            MetricEnum       `json:"metric"`
 	Description       string           `json:"description"`
 	ProductivityLevel ProductivityEnum `json:"productivity_level"`

@@ -10,7 +10,7 @@ definitions:
         type: string
       end_at:
         type: string
-      indicator_id:
+      indicator_range_id:
         type: string
       metric:
         type: string
@@ -34,7 +34,7 @@ definitions:
     properties:
       description:
         type: string
-      indicator_id:
+      indicator_range_id:
         type: string
       metric:
         type: string
@@ -267,7 +267,7 @@ definitions:
         type: string
       id:
         type: string
-      indicator_id:
+      indicator_range_id:
         type: string
       start_at:
         type: string
@@ -308,7 +308,7 @@ definitions:
         type: string
       id:
         type: string
-      indicator_id:
+      indicator_range_id:
         type: string
       metric:
         $ref: '#/definitions/models.MetricEnum'

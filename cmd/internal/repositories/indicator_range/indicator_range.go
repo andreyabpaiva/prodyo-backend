@@ -22,6 +22,45 @@ func New(db *pgxpool.Pool) *Repository {
 	return &Repository{db: db}
 }
 
+// GetByID returns a single indicator range by its ID
+func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.IndicatorRange, error) {
+	const query = `
+		SELECT id, project_id, indicator_type,
+			ok_min, ok_max, alert_min, alert_max, critical_min, critical_max,
+			created_at, updated_at
+		FROM indicator_ranges
+		WHERE id = $1
+	`
+
+	var ir models.IndicatorRange
+	var okMin, okMax, alertMin, alertMax, criticalMin, criticalMax float64
+
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&ir.ID,
+		&ir.ProjectID,
+		&ir.IndicatorType,
+		&okMin, &okMax,
+		&alertMin, &alertMax,
+		&criticalMin, &criticalMax,
+		&ir.CreatedAt,
+		&ir.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.IndicatorRange{}, ErrNotFound
+		}
+		return models.IndicatorRange{}, err
+	}
+
+	ir.Range = models.ProductivityRange{
+		Ok:       models.RangeValues{Min: okMin, Max: okMax},
+		Alert:    models.RangeValues{Min: alertMin, Max: alertMax},
+		Critical: models.RangeValues{Min: criticalMin, Max: criticalMax},
+	}
+
+	return ir, nil
+}
+
 // GetByProjectID returns all indicator ranges for a project
 func (r *Repository) GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]models.IndicatorRange, error) {
 	const query = `

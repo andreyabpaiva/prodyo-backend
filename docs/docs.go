@@ -2251,7 +2251,7 @@ const docTemplate = `{
                 "end_at": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "metric": {
@@ -2288,7 +2288,7 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "metric": {
@@ -2644,7 +2644,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "start_at": {
@@ -2707,7 +2707,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "metric": {

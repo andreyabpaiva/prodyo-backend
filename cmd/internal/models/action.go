@@ -8,7 +8,7 @@ import (
 
 type Action struct {
 	ID          uuid.UUID `json:"id"`
-	IndicatorID uuid.UUID `json:"indicator_id"`
+	IndicatorRangeID uuid.UUID `json:"indicator_range_id"`
 	Description string    `json:"description"`
 	Cause       Cause     `json:"cause"`
 	StartAt     time.Time `json:"start_at"`

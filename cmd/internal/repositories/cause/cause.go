@@ -21,14 +21,14 @@ func New(db *pgxpool.Pool) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.Cause, error) {
+func (r *Repository) Get(ctx context.Context, indicatorRangeID uuid.UUID) ([]models.Cause, error) {
 	const query = `
-		SELECT id, indicator_id, metric, description, productivity_level, created_at, updated_at
+		SELECT id, indicator_range_id, metric, description, productivity_level, created_at, updated_at
 		FROM causes
-		WHERE indicator_id = $1
+		WHERE indicator_range_id = $1
 		ORDER BY created_at ASC
 	`
-	rows, err := r.db.Query(ctx, query, indicatorID)
+	rows, err := r.db.Query(ctx, query, indicatorRangeID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.C
 		var c models.Cause
 		if err := rows.Scan(
 			&c.ID,
-			&c.IndicatorID,
+			&c.IndicatorRangeID,
 			&c.Metric,
 			&c.Description,
 			&c.ProductivityLevel,
@@ -56,7 +56,7 @@ func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.C
 
 func (r *Repository) Create(ctx context.Context, cause models.Cause) error {
 	const query = `
-		INSERT INTO causes (id, indicator_id, metric, description, productivity_level)
+		INSERT INTO causes (id, indicator_range_id, metric, description, productivity_level)
 		VALUES ($1, $2, $3, $4, $5)
 	`
 	if cause.ID == uuid.Nil {
@@ -65,7 +65,7 @@ func (r *Repository) Create(ctx context.Context, cause models.Cause) error {
 
 	_, err := r.db.Exec(ctx, query,
 		cause.ID,
-		cause.IndicatorID,
+		cause.IndicatorRangeID,
 		cause.Metric,
 		cause.Description,
 		cause.ProductivityLevel,

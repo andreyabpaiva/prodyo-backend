@@ -22,19 +22,19 @@ func New(db *pgxpool.Pool) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.Action, error) {
+func (r *Repository) Get(ctx context.Context, indicatorRangeID uuid.UUID) ([]models.Action, error) {
 	const query = `
-		SELECT a.id, a.indicator_id, a.description, a.start_at, a.end_at, a.assignee_id, a.created_at, a.updated_at,
+		SELECT a.id, a.indicator_range_id, a.description, a.start_at, a.end_at, a.assignee_id, a.created_at, a.updated_at,
 		       c.id as cause_id, c.metric, c.description as cause_description,
 		       c.productivity_level, c.created_at as cause_created_at, c.updated_at as cause_updated_at,
 		       u.id as user_id, u.name as user_name, u.email as user_email
 		FROM actions a
 		INNER JOIN causes c ON a.cause_id = c.id
 		LEFT JOIN users u ON a.assignee_id = u.id
-		WHERE a.indicator_id = $1
+		WHERE a.indicator_range_id = $1
 		ORDER BY a.created_at ASC
 	`
-	rows, err := r.db.Query(ctx, query, indicatorID)
+	rows, err := r.db.Query(ctx, query, indicatorRangeID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.A
 		var userName, userEmail *string
 		if err := rows.Scan(
 			&a.ID,
-			&a.IndicatorID,
+			&a.IndicatorRangeID,
 			&a.Description,
 			&a.StartAt,
 			&a.EndAt,
@@ -67,7 +67,7 @@ func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.A
 		); err != nil {
 			return nil, err
 		}
-		c.IndicatorID = a.IndicatorID
+		c.IndicatorRangeID = a.IndicatorRangeID
 		a.Cause = c
 
 		// Populate assignee if present
@@ -87,7 +87,7 @@ func (r *Repository) Get(ctx context.Context, indicatorID uuid.UUID) ([]models.A
 
 func (r *Repository) Create(ctx context.Context, action models.Action) error {
 	const query = `
-		INSERT INTO actions (id, indicator_id, cause_id, description, start_at, end_at, assignee_id)
+		INSERT INTO actions (id, indicator_range_id, cause_id, description, start_at, end_at, assignee_id)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 	if action.ID == uuid.Nil {
@@ -109,7 +109,7 @@ func (r *Repository) Create(ctx context.Context, action models.Action) error {
 
 	_, err := r.db.Exec(ctx, query,
 		action.ID,
-		action.IndicatorID,
+		action.IndicatorRangeID,
 		action.Cause.ID,
 		action.Description,
 		startAt,

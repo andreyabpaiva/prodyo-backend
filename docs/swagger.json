@@ -2245,7 +2245,7 @@
                 "end_at": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "metric": {
@@ -2282,7 +2282,7 @@
                 "description": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "metric": {
@@ -2638,7 +2638,7 @@
                 "id": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "start_at": {
@@ -2701,7 +2701,7 @@
                 "id": {
                     "type": "string"
                 },
-                "indicator_id": {
+                "indicator_range_id": {
                     "type": "string"
                 },
                 "metric": {
