@@ -60,10 +60,12 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 	points := make([]models.DataPoint, 0, len(completedTasks))
 	indicatorRange := ic.ranges[models.IndicatorSpeedPerIteration]
 
-	for i, task := range completedTasks {
+	for _, task := range completedTasks {
+		timerInHours := float64(task.Timer) / 3600.0
+
 		var speed float64
 		if task.Timer > 0 {
-			speed = float64(task.Points) / float64(task.Timer)
+			speed = float64(task.Points) / timerInHours
 		} else {
 			speed = 0
 		}
@@ -71,8 +73,8 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 		status := ic.determineStatus(speed, indicatorRange)
 
 		points = append(points, models.DataPoint{
-			X:      i + 1,
-			Y:      speed,
+			X:      int(timerInHours),
+			Y:      float64(task.Points),
 			Status: status,
 		})
 	}
@@ -80,11 +82,11 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 	return models.IndicatorAnalysisData{
 		IndicatorType: string(models.IndicatorSpeedPerIteration),
 		XAxis: models.AxisDefinition{
-			Type:  "TASK_SEQUENCE",
-			Label: "Tasks concluídas",
+			Type:  "TIME",
+			Label: "Tempo (horas)",
 		},
 		YAxis: models.AxisDefinition{
-			Label: "Pontos / Tempo (dias)",
+			Label: "Tamanho (pontos)",
 		},
 		Points: points,
 	}
@@ -116,7 +118,7 @@ func (ic *IndicatorCalculator) calculateReworkAnalysis(completedTasks []models.T
 			Label: "Tasks concluídas",
 		},
 		YAxis: models.AxisDefinition{
-			Label: "Bugs / Task",
+			Label: "Bugs",
 		},
 		Points: points,
 	}
@@ -148,7 +150,7 @@ func (ic *IndicatorCalculator) calculateInstabilityAnalysis(completedTasks []mod
 			Label: "Tasks concluídas",
 		},
 		YAxis: models.AxisDefinition{
-			Label: "Melhorias / Task",
+			Label: "Melhorias",
 		},
 		Points: points,
 	}
