@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"prodyo-backend/cmd/internal/usecases"
 )
@@ -113,10 +112,8 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get user details
 	user, err := h.authUseCase.ValidateSession(ctx, session.Token)
 	if err != nil {
-		log.Printf("Failed to get user details for email %s: %v", req.Email, err)
 		http.Error(w, "Failed to get user details", http.StatusInternalServerError)
 		return
 	}

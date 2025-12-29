@@ -475,6 +475,12 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 
 	ctx := r.Context()
 
+	_, err := h.indicatorUseCase.GetByID(ctx, req.IndicatorID)
+	if err != nil {
+		http.Error(w, "Indicator not found. Please create an indicator first.", http.StatusNotFound)
+		return
+	}
+
 	metric := models.MetricEnum(req.Metric)
 	if metric != models.MetricWorkVelocity &&
 		metric != models.MetricReworkIndex &&
