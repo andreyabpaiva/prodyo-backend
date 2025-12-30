@@ -16,6 +16,8 @@ definitions:
         type: string
       start_at:
         type: string
+      status:
+        type: string
     type: object
   handlers.CreateBugRequest:
     properties:
@@ -149,6 +151,19 @@ definitions:
             type: string
         type: object
     type: object
+  handlers.PatchActionRequest:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      end_at:
+        type: string
+      start_at:
+        type: string
+      status:
+        type: string
+    type: object
   handlers.PatchTaskRequest:
     properties:
       assignee_id:
@@ -271,6 +286,8 @@ definitions:
         type: string
       start_at:
         type: string
+      status:
+        $ref: '#/definitions/models.StatusEnum'
       updated_at:
         type: string
     type: object
@@ -1050,6 +1067,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new action
+      tags:
+      - indicators
+  /indicators/actions/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Partially update an existing action (only provided fields will
+        be updated)
+      parameters:
+      - description: Action ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Partial action data
+        in: body
+        name: action
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PatchActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated action
+          schema:
+            $ref: '#/definitions/models.Action'
+        "400":
+          description: Invalid action ID or request body
+          schema:
+            type: string
+        "404":
+          description: Action not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update action
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Partially update action
       tags:
       - indicators
   /indicators/causes:

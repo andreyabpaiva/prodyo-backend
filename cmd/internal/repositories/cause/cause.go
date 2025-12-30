@@ -91,7 +91,7 @@ func (r *Repository) GetByIterationID(ctx context.Context, iterationID uuid.UUID
 
 func (r *Repository) Create(ctx context.Context, cause models.Cause) error {
 	const query = `
-		INSERT INTO causes (id, indicator_id, metric, description, productivity_level)
+		INSERT INTO causes (id, indicator_range_id, metric, description, productivity_level)
 		VALUES ($1, $2, $3, $4, $5)
 	`
 	if cause.ID == uuid.Nil {

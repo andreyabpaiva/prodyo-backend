@@ -49,9 +49,18 @@ type CreateActionRequest struct {
 	Metric           string     `json:"metric"`
 	CauseDescription string     `json:"cause_description"`
 	Description      string     `json:"description"`
+	Status           *string    `json:"status,omitempty"`
 	StartAt          *time.Time `json:"start_at,omitempty"`
 	EndAt            *time.Time `json:"end_at,omitempty"`
 	AssigneeID       *uuid.UUID `json:"assignee_id,omitempty"`
+}
+
+type PatchActionRequest struct {
+	Description *string    `json:"description,omitempty"`
+	Status      *string    `json:"status,omitempty"`
+	StartAt     *time.Time `json:"start_at,omitempty"`
+	EndAt       *time.Time `json:"end_at,omitempty"`
+	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
 }
 
 // RangeValuesRequest represents min/max values for a productivity level
@@ -521,6 +530,7 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 
 	causeID, err := h.causeUseCase.Create(ctx, newCause)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Failed to create cause", http.StatusInternalServerError)
 		return
 	}
@@ -531,6 +541,11 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 		IndicatorRangeID: req.IndicatorRangeID,
 		Cause:            newCause,
 		Description:      req.Description,
+		Status:           models.StatusNotStarted,
+	}
+
+	if req.Status != nil {
+		newAction.Status = models.StatusEnum(*req.Status)
 	}
 
 	if req.StartAt != nil {
@@ -548,6 +563,7 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 
 	actionID, err := h.actionUseCase.Create(ctx, newAction)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Failed to create action", http.StatusInternalServerError)
 		return
 	}
@@ -559,6 +575,7 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 		"metric":             req.Metric,
 		"cause_description":  req.CauseDescription,
 		"description":        req.Description,
+		"status":             newAction.Status,
 		"start_at":           req.StartAt,
 		"end_at":             req.EndAt,
 		"assignee_id":        req.AssigneeID,
@@ -697,4 +714,78 @@ func (h *IndicatorHandlers) GetCausesAndActionsByIteration(w http.ResponseWriter
 		"causes":       causes,
 		"actions":      actions,
 	})
+}
+
+// PatchAction handles PATCH /indicators/actions/{id}
+// @Summary Partially update action
+// @Description Partially update an existing action (only provided fields will be updated)
+// @Tags indicators
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Action ID" format(uuid)
+// @Param action body PatchActionRequest true "Partial action data"
+// @Success 200 {object} models.Action "Updated action"
+// @Failure 400 {string} string "Invalid action ID or request body"
+// @Failure 404 {string} string "Action not found"
+// @Failure 500 {string} string "Failed to update action"
+// @Router /indicators/actions/{id} [patch]
+func (h *IndicatorHandlers) PatchAction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "Invalid action ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+
+	existingAction, err := h.actionUseCase.GetByID(ctx, id)
+	if err != nil {
+		http.Error(w, "Action not found", http.StatusNotFound)
+		return
+	}
+
+	var req PatchActionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Description != nil {
+		existingAction.Description = *req.Description
+	}
+
+	if req.Status != nil {
+		existingAction.Status = models.StatusEnum(*req.Status)
+	}
+
+	if req.StartAt != nil {
+		existingAction.StartAt = *req.StartAt
+	}
+
+	if req.EndAt != nil {
+		existingAction.EndAt = *req.EndAt
+	}
+
+	if req.AssigneeID != nil {
+		existingAction.Assignee.ID = *req.AssigneeID
+	}
+
+	err = h.actionUseCase.Update(ctx, existingAction)
+	if err != nil {
+		http.Error(w, "Failed to update action", http.StatusInternalServerError)
+		return
+	}
+
+	updatedAction, err := h.actionUseCase.GetByID(ctx, id)
+	if err != nil {
+		http.Error(w, "Failed to retrieve updated action", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedAction)
 }

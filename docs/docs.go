@@ -618,6 +618,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/indicators/actions/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Partially update an existing action (only provided fields will be updated)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "indicators"
+                ],
+                "summary": "Partially update action",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Action ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Partial action data",
+                        "name": "action",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.PatchActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated action",
+                        "schema": {
+                            "$ref": "#/definitions/models.Action"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid action ID or request body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Action not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update action",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/indicators/causes": {
             "post": {
                 "security": [
@@ -2367,6 +2432,9 @@ const docTemplate = `{
                 },
                 "start_at": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -2573,6 +2641,26 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.PatchActionRequest": {
+            "type": "object",
+            "properties": {
+                "assignee_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_at": {
+                    "type": "string"
+                },
+                "start_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.PatchTaskRequest": {
             "type": "object",
             "properties": {
@@ -2757,6 +2845,9 @@ const docTemplate = `{
                 },
                 "start_at": {
                     "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.StatusEnum"
                 },
                 "updated_at": {
                     "type": "string"

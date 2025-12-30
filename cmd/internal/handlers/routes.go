@@ -100,6 +100,7 @@ func SetupRoutes(
 	protected.HandleFunc("/indicators", indicatorHandlers.Create).Methods("POST")
 	protected.HandleFunc("/indicators/causes", indicatorHandlers.CreateCause).Methods("POST")
 	protected.HandleFunc("/indicators/actions", indicatorHandlers.CreateAction).Methods("POST")
+	protected.HandleFunc("/indicators/actions/{id}", indicatorHandlers.PatchAction).Methods("PATCH")
 	protected.HandleFunc("/indicators/ranges", indicatorHandlers.SetRange).Methods("POST")
 	protected.HandleFunc("/indicators/ranges/{range_id}", indicatorHandlers.DeleteRange).Methods("DELETE")
 	protected.HandleFunc("/indicators/{indicator_id}/metrics", indicatorHandlers.UpdateMetricValues).Methods("PUT")
