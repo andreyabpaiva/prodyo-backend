@@ -59,6 +59,7 @@ func SetupRoutes(
 	protected.HandleFunc("/projects/{project_id}/indicator-ranges", indicatorHandlers.GetRanges).Methods("GET")
 	protected.HandleFunc("/projects/{project_id}/indicator-ranges/default", indicatorHandlers.CreateDefaultRanges).Methods("POST")
 	protected.HandleFunc("/projects/{project_id}/indicator-ranges/{indicator_type}", indicatorHandlers.GetRangeByIndicatorType).Methods("GET")
+	protected.HandleFunc("/projects/{project_id}/indicator-range-ids/{indicator_type}", indicatorHandlers.GetIndicatorRangeIDByProjectIDAndType).Methods("GET")
 
 	// User routes
 	protected.HandleFunc("/users", userHandlers.GetAllUsers).Methods("GET")
@@ -74,6 +75,7 @@ func SetupRoutes(
 	protected.HandleFunc("/iterations/{id}", iterationHandlers.GetByID).Methods("GET")
 	protected.HandleFunc("/iterations/{id}", iterationHandlers.Delete).Methods("DELETE")
 	protected.HandleFunc("/iterations/{id}/analysis", iterationHandlers.GetIterationAnalysis).Methods("GET")
+	protected.HandleFunc("/iterations/{iteration_id}/causes-actions", indicatorHandlers.GetCausesAndActionsByIteration).Methods("GET")
 
 	// Task routes
 	protected.HandleFunc("/tasks", taskHandlers.GetAll).Methods("GET")

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"prodyo-backend/cmd/internal/models"
 	"prodyo-backend/cmd/internal/usecases"
@@ -457,6 +458,7 @@ func (h *IndicatorHandlers) CreateCause(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 	causeID, err := h.causeUseCase.Create(ctx, newCause)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Failed to create cause", http.StatusInternalServerError)
 		return
 	}
@@ -497,6 +499,7 @@ func (h *IndicatorHandlers) CreateAction(w http.ResponseWriter, r *http.Request)
 
 	_, err := h.indicatorRangeUseCase.GetByID(ctx, req.IndicatorRangeID)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Indicator range not found. Please create an indicator range first.", http.StatusNotFound)
 		return
 	}
@@ -602,5 +605,96 @@ func (h *IndicatorHandlers) CreateDefaultRanges(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"project_id": projectID,
 		"ranges":     ranges,
+	})
+}
+
+// GetIndicatorRangeIDByProjectIDAndType handles GET /projects/{project_id}/indicator-range-ids/{indicator_type}
+// @Summary Get indicator range ID by project ID and indicator type
+// @Description Returns the indicator range ID based on project ID and indicator type
+// @Tags indicators
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param project_id path string true "Project ID" format(uuid)
+// @Param indicator_type path string true "Indicator type (SpeedPerIteration, ReworkPerIteration, InstabilityIndex)"
+// @Success 200 {object} map[string]interface{} "Indicator range ID"
+// @Failure 400 {string} string "Invalid parameters"
+// @Failure 404 {string} string "Indicator range not found"
+// @Router /projects/{project_id}/indicator-range-ids/{indicator_type} [get]
+func (h *IndicatorHandlers) GetIndicatorRangeIDByProjectIDAndType(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projectIDStr := vars["project_id"]
+	indicatorTypeStr := vars["indicator_type"]
+
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project_id", http.StatusBadRequest)
+		return
+	}
+
+	indicatorType := models.IndicatorEnum(indicatorTypeStr)
+	if indicatorType != models.IndicatorSpeedPerIteration &&
+		indicatorType != models.IndicatorReworkPerIteration &&
+		indicatorType != models.IndicatorInstabilityIndex {
+		http.Error(w, "Invalid indicator_type. Must be SpeedPerIteration, ReworkPerIteration, or InstabilityIndex", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	ir, err := h.indicatorRangeUseCase.GetByIndicatorType(ctx, projectID, indicatorType)
+	if err != nil {
+		http.Error(w, "Indicator range not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"indicator_range_id": ir.ID,
+	})
+}
+
+// GetCausesAndActionsByIteration godoc
+// @Summary Get all causes and actions for an iteration
+// @Description Retrieves all causes and actions associated with a specific iteration
+// @Tags indicators
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param iteration_id path string true "Iteration ID"
+// @Success 200 {object} map[string]interface{} "Causes and actions retrieved successfully"
+// @Failure 400 {string} string "Invalid iteration ID"
+// @Failure 500 {string} string "Failed to retrieve causes and actions"
+// @Router /iterations/{iteration_id}/causes-actions [get]
+func (h *IndicatorHandlers) GetCausesAndActionsByIteration(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	iterationIDStr := vars["iteration_id"]
+
+	iterationID, err := uuid.Parse(iterationIDStr)
+	if err != nil {
+		http.Error(w, "Invalid iteration ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+
+	causes, err := h.causeUseCase.GetByIterationID(ctx, iterationID)
+	if err != nil {
+		log.Printf("Failed to get causes: %v", err)
+		http.Error(w, "Failed to retrieve causes", http.StatusInternalServerError)
+		return
+	}
+
+	actions, err := h.actionUseCase.GetByIterationID(ctx, iterationID)
+	if err != nil {
+		log.Printf("Failed to get actions: %v", err)
+		http.Error(w, "Failed to retrieve actions", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"iteration_id": iterationID,
+		"causes":       causes,
+		"actions":      actions,
 	})
 }

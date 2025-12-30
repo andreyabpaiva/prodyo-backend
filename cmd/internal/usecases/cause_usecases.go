@@ -20,6 +20,10 @@ func (u *CauseUseCase) Get(ctx context.Context, indicatorID uuid.UUID) ([]models
 	return u.repo.Get(ctx, indicatorID)
 }
 
+func (u *CauseUseCase) GetByIterationID(ctx context.Context, iterationID uuid.UUID) ([]models.Cause, error) {
+	return u.repo.GetByIterationID(ctx, iterationID)
+}
+
 func (u *CauseUseCase) Create(ctx context.Context, cause models.Cause) (uuid.UUID, error) {
 	if cause.ID == uuid.Nil {
 		cause.ID = uuid.New()

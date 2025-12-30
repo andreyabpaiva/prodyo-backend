@@ -1313,6 +1313,38 @@ paths:
       summary: Get iteration indicator analysis
       tags:
       - iterations
+  /iterations/{iteration_id}/causes-actions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all causes and actions associated with a specific iteration
+      parameters:
+      - description: Iteration ID
+        in: path
+        name: iteration_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Causes and actions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid iteration ID
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve causes and actions
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get all causes and actions for an iteration
+      tags:
+      - indicators
   /projects:
     get:
       consumes:
@@ -1478,6 +1510,45 @@ paths:
       summary: Update project
       tags:
       - projects
+  /projects/{project_id}/indicator-range-ids/{indicator_type}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the indicator range ID based on project ID and indicator
+        type
+      parameters:
+      - description: Project ID
+        format: uuid
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: Indicator type (SpeedPerIteration, ReworkPerIteration, InstabilityIndex)
+        in: path
+        name: indicator_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Indicator range ID
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "404":
+          description: Indicator range not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get indicator range ID by project ID and indicator type
+      tags:
+      - indicators
   /projects/{project_id}/indicator-ranges:
     get:
       consumes:

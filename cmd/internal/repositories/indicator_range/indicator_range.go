@@ -22,7 +22,6 @@ func New(db *pgxpool.Pool) *Repository {
 	return &Repository{db: db}
 }
 
-// GetByID returns a single indicator range by its ID
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.IndicatorRange, error) {
 	const query = `
 		SELECT id, project_id, indicator_type,
@@ -272,4 +271,3 @@ func (r *Repository) DeleteByProjectID(ctx context.Context, projectID uuid.UUID)
 	_, err := r.db.Exec(ctx, query, projectID)
 	return err
 }
-

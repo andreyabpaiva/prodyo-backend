@@ -20,6 +20,10 @@ func (u *ActionUseCase) Get(ctx context.Context, indicatorID uuid.UUID) ([]model
 	return u.repo.Get(ctx, indicatorID)
 }
 
+func (u *ActionUseCase) GetByIterationID(ctx context.Context, iterationID uuid.UUID) ([]models.Action, error) {
+	return u.repo.GetByIterationID(ctx, iterationID)
+}
+
 func (u *ActionUseCase) Create(ctx context.Context, action models.Action) (uuid.UUID, error) {
 	if action.ID == uuid.Nil {
 		action.ID = uuid.New()
