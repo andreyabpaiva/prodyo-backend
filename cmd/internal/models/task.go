@@ -15,6 +15,7 @@ type Task struct {
 	Status       StatusEnum `json:"status"`
 	Timer        int64      `json:"timer"`
 	Points       int        `json:"points"`
+	ExpectedTime float64    `json:"expected_time"` 
 	Tasks        []Task     `json:"tasks,omitempty"` // Sub-tasks
 	Improvements []Improv   `json:"improvements,omitempty"`
 	Bugs         []Bug      `json:"bugs,omitempty"`

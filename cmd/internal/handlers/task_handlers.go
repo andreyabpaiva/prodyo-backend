@@ -21,31 +21,34 @@ func NewTaskHandlers(taskUseCase *usecases.TaskUseCase) *TaskHandlers {
 }
 
 type CreateTaskRequest struct {
-	IterationID uuid.UUID  `json:"iteration_id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
-	Status      string     `json:"status"`
-	Timer       *string    `json:"timer,omitempty"`
-	Points      int        `json:"points"`
+	IterationID  uuid.UUID  `json:"iteration_id"`
+	Name         string     `json:"name"`
+	Description  string     `json:"description"`
+	AssigneeID   *uuid.UUID `json:"assignee_id,omitempty"`
+	Status       string     `json:"status"`
+	Timer        *string    `json:"timer,omitempty"`
+	Points       int        `json:"points"`
+	ExpectedTime float64    `json:"expected_time"`
 }
 
 type UpdateTaskRequest struct {
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
-	Status      string     `json:"status"`
-	Timer       *string    `json:"timer,omitempty"`
-	Points      int        `json:"points"`
+	Name         string     `json:"name"`
+	Description  string     `json:"description"`
+	AssigneeID   *uuid.UUID `json:"assignee_id,omitempty"`
+	Status       string     `json:"status"`
+	Timer        *string    `json:"timer,omitempty"`
+	Points       int        `json:"points"`
+	ExpectedTime float64    `json:"expected_time"`
 }
 
 type PatchTaskRequest struct {
-	Name        *string    `json:"name,omitempty"`
-	Description *string    `json:"description,omitempty"`
-	AssigneeID  *uuid.UUID `json:"assignee_id,omitempty"`
-	Status      *string    `json:"status,omitempty"`
-	Timer       *string    `json:"timer,omitempty"`
-	Points      *int       `json:"points,omitempty"`
+	Name         *string    `json:"name,omitempty"`
+	Description  *string    `json:"description,omitempty"`
+	AssigneeID   *uuid.UUID `json:"assignee_id,omitempty"`
+	Status       *string    `json:"status,omitempty"`
+	Timer        *string    `json:"timer,omitempty"`
+	Points       *int       `json:"points,omitempty"`
+	ExpectedTime *float64   `json:"expected_time,omitempty"`
 }
 
 // GetAll handles GET /tasks
@@ -162,13 +165,14 @@ func (h *TaskHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newTask := models.Task{
-		IterationID: req.IterationID,
-		Name:        req.Name,
-		Description: req.Description,
-		Assignee:    assignee,
-		Status:      status,
-		Timer:       timer,
-		Points:      points,
+		IterationID:  req.IterationID,
+		Name:         req.Name,
+		Description:  req.Description,
+		Assignee:     assignee,
+		Status:       status,
+		Timer:        timer,
+		Points:       points,
+		ExpectedTime: req.ExpectedTime,
 	}
 
 	ctx := r.Context()
@@ -241,13 +245,14 @@ func (h *TaskHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedTask := models.Task{
-		ID:          id,
-		Name:        req.Name,
-		Description: req.Description,
-		Assignee:    assignee,
-		Status:      status,
-		Timer:       timer,
-		Points:      points,
+		ID:           id,
+		Name:         req.Name,
+		Description:  req.Description,
+		Assignee:     assignee,
+		Status:       status,
+		Timer:        timer,
+		Points:       points,
+		ExpectedTime: req.ExpectedTime,
 	}
 
 	ctx := r.Context()
@@ -360,6 +365,10 @@ func (h *TaskHandlers) Patch(w http.ResponseWriter, r *http.Request) {
 			points = 1
 		}
 		existingTask.Points = points
+	}
+
+	if req.ExpectedTime != nil {
+		existingTask.ExpectedTime = *req.ExpectedTime
 	}
 
 	err = h.taskUseCase.Update(ctx, existingTask)

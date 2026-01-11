@@ -2561,6 +2561,10 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "expected_time": {
+                    "description": "Expected time in hours",
+                    "type": "number"
+                },
                 "iteration_id": {
                     "type": "string"
                 },
@@ -2669,6 +2673,10 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "expected_time": {
+                    "description": "Expected time in hours",
+                    "type": "number"
                 },
                 "name": {
                     "type": "string"
@@ -2789,6 +2797,10 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "expected_time": {
+                    "description": "Expected time in hours",
+                    "type": "number"
                 },
                 "name": {
                     "type": "string"
@@ -3248,6 +3260,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "expected_time": {
+                    "type": "number"
                 },
                 "id": {
                     "type": "string"

@@ -33,7 +33,7 @@ func New(db *pgxpool.Pool) *Repository {
 
 func (r *Repository) GetAll(ctx context.Context, iterationID uuid.UUID) ([]models.Task, error) {
 	const query = `
-		SELECT t.id, t.iteration_id, t.name, t.description, t.status, t.timer, t.points, t.parent_task_id,
+		SELECT t.id, t.iteration_id, t.name, t.description, t.status, t.timer, t.points, t.expected_time, t.parent_task_id,
 		       t.created_at, t.updated_at,
 		       u.id as assignee_id, u.name as assignee_name, u.email as assignee_email,
 		       u.created_at as assignee_created_at, u.updated_at as assignee_updated_at
@@ -86,7 +86,7 @@ func (r *Repository) GetAll(ctx context.Context, iterationID uuid.UUID) ([]model
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (models.Task, error) {
 	const query = `
-		SELECT t.id, t.iteration_id, t.name, t.description, t.status, t.timer, t.points, t.parent_task_id,
+		SELECT t.id, t.iteration_id, t.name, t.description, t.status, t.timer, t.points, t.expected_time, t.parent_task_id,
 		       t.created_at, t.updated_at,
 		       u.id as assignee_id, u.name as assignee_name, u.email as assignee_email,
 		       u.created_at as assignee_created_at, u.updated_at as assignee_updated_at
@@ -126,6 +126,7 @@ func (r *Repository) scanTask(row interface {
 		&t.Status,
 		&timer,
 		&t.Points,
+		&t.ExpectedTime,
 		&parentTaskID,
 		&t.CreatedAt,
 		&t.UpdatedAt,
@@ -158,8 +159,8 @@ func (r *Repository) scanTask(row interface {
 
 func (r *Repository) Create(ctx context.Context, task models.Task) error {
 	const query = `
-		INSERT INTO tasks (id, iteration_id, name, description, assignee_id, status, timer, points, parent_task_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO tasks (id, iteration_id, name, description, assignee_id, status, timer, points, expected_time, parent_task_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 	if task.ID == uuid.Nil {
 		task.ID = uuid.New()
@@ -198,6 +199,7 @@ func (r *Repository) Create(ctx context.Context, task models.Task) error {
 		task.Status,
 		timer,
 		points,
+		task.ExpectedTime,
 		parentTaskID,
 	)
 	return err
@@ -206,8 +208,8 @@ func (r *Repository) Create(ctx context.Context, task models.Task) error {
 func (r *Repository) Update(ctx context.Context, task models.Task) error {
 	const query = `
 		UPDATE tasks
-		SET name = $1, description = $2, assignee_id = $3, status = $4, timer = $5, points = $6, updated_at = NOW()
-		WHERE id = $7
+		SET name = $1, description = $2, assignee_id = $3, status = $4, timer = $5, points = $6, expected_time = $7, updated_at = NOW()
+		WHERE id = $8
 	`
 	var assigneeID interface{}
 	if task.Assignee.ID != uuid.Nil {
@@ -235,6 +237,7 @@ func (r *Repository) Update(ctx context.Context, task models.Task) error {
 		task.Status,
 		timer,
 		points,
+		task.ExpectedTime,
 		task.ID,
 	)
 	if err != nil {

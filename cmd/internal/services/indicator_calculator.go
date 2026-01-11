@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"sort"
 	"time"
 
@@ -57,38 +58,75 @@ func (ic *IndicatorCalculator) getCompletedTasksSorted() []models.Task {
 }
 
 func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Task) models.IndicatorAnalysisData {
-	points := make([]models.DataPoint, 0, len(completedTasks))
 	indicatorRange := ic.ranges[models.IndicatorSpeedPerIteration]
 
+	var totalPoints int
+	var totalEstimatedTime float64
+	var totalActualTime float64
+
 	for _, task := range completedTasks {
-		timerInHours := float64(task.Timer) / 3600.0
-
-		var speed float64
 		if task.Timer > 0 {
-			speed = float64(task.Points) / timerInHours
-		} else {
-			speed = 0
+			totalPoints += task.Points
+			totalEstimatedTime += task.ExpectedTime
+			totalActualTime += float64(task.Timer) / 3600.0
 		}
+	}
 
-		status := ic.determineStatus(speed, indicatorRange)
+	var expectedSpeed float64
+	var actualSpeed float64
+	var efficiencyPercent float64
 
-		points = append(points, models.DataPoint{
-			X:      int(timerInHours),
-			Y:      float64(task.Points),
-			Status: status,
-		})
+	if totalEstimatedTime > 0 {
+		expectedSpeed = float64(totalPoints) / totalEstimatedTime
+	}
+
+	if totalActualTime > 0 {
+		actualSpeed = float64(totalPoints) / totalActualTime
+	}
+
+	log.Println("expected speed", expectedSpeed)
+	log.Println("actual speed", actualSpeed)
+
+	if expectedSpeed > 0 {
+		efficiencyPercent = (actualSpeed / expectedSpeed) * 100
+	}
+
+	actualStatus := ic.determineStatus(actualSpeed, indicatorRange)
+
+	points := []models.DataPoint{
+		{
+			X:      "EXPECTED",
+			Y:      expectedSpeed,
+			Status: "",
+		},
+		{
+			X:      "ACTUAL",
+			Y:      actualSpeed,
+			Status: actualStatus,
+		},
 	}
 
 	return models.IndicatorAnalysisData{
 		IndicatorType: string(models.IndicatorSpeedPerIteration),
 		XAxis: models.AxisDefinition{
-			Type:  "TIME",
-			Label: "Tempo (horas)",
+			Type:  "CATEGORY",
+			Label: "Tipo de Velocidade",
 		},
 		YAxis: models.AxisDefinition{
-			Label: "Tamanho (pontos)",
+			Type:  "RATE",
+			Label: "Velocidade (pontos/hora)",
 		},
 		Points: points,
+		Summary: &models.SpeedSummary{
+			TotalPoints:        totalPoints,
+			TotalEstimatedTime: totalEstimatedTime,
+			TotalActualTime:    totalActualTime,
+		},
+		Values: &models.SpeedValues{
+			ExpectedSpeed:     expectedSpeed,
+			ActualSpeed:       actualSpeed,
+			EfficiencyPercent: efficiencyPercent,
+		},
 	}
 }
 
