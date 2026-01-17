@@ -34,7 +34,6 @@ type SpeedSummary struct {
 }
 
 type SpeedValues struct {
-	ExpectedSpeed     float64 `json:"expectedSpeed"`
-	ActualSpeed       float64 `json:"actualSpeed"`
-	EfficiencyPercent float64 `json:"efficiencyPercent"`
+	ExpectedSpeed float64 `json:"expectedSpeed"`
+	ActualSpeed   float64 `json:"actualSpeed"`
 }

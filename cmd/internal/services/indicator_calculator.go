@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 	"sort"
 	"time"
 
@@ -74,7 +73,6 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 
 	var expectedSpeed float64
 	var actualSpeed float64
-	var efficiencyPercent float64
 
 	if totalEstimatedTime > 0 {
 		expectedSpeed = float64(totalPoints) / totalEstimatedTime
@@ -84,26 +82,24 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 		actualSpeed = float64(totalPoints) / totalActualTime
 	}
 
-	log.Println("expected speed", expectedSpeed)
-	log.Println("actual speed", actualSpeed)
+	var points []models.DataPoint
+	if totalPoints > 0 && totalEstimatedTime > 0 && totalActualTime > 0 {
+		expectedPercent := 100.0
+		actualPercent := (actualSpeed / expectedSpeed) * 100
+		actualStatus := ic.determineStatus(actualSpeed, indicatorRange)
 
-	if expectedSpeed > 0 {
-		efficiencyPercent = (actualSpeed / expectedSpeed) * 100
-	}
-
-	actualStatus := ic.determineStatus(actualSpeed, indicatorRange)
-
-	points := []models.DataPoint{
-		{
-			X:      "EXPECTED",
-			Y:      expectedSpeed,
-			Status: "",
-		},
-		{
-			X:      "ACTUAL",
-			Y:      actualSpeed,
-			Status: actualStatus,
-		},
+		points = []models.DataPoint{
+			{
+				X:      "EXPECTED",
+				Y:      expectedPercent,
+				Status: "",
+			},
+			{
+				X:      "ACTUAL",
+				Y:      actualPercent,
+				Status: actualStatus,
+			},
+		}
 	}
 
 	return models.IndicatorAnalysisData{
@@ -123,9 +119,8 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 			TotalActualTime:    totalActualTime,
 		},
 		Values: &models.SpeedValues{
-			ExpectedSpeed:     expectedSpeed,
-			ActualSpeed:       actualSpeed,
-			EfficiencyPercent: efficiencyPercent,
+			ExpectedSpeed: expectedSpeed,
+			ActualSpeed:   actualSpeed,
 		},
 	}
 }
@@ -209,9 +204,10 @@ func (ic *IndicatorCalculator) determineStatus(value float64, indicatorRange mod
 		return models.ProductivityOk
 	}
 
-	if value < r.Ok.Min {
+	if value > r.Ok.Max {
 		return models.ProductivityOk
 	}
+
 	return models.ProductivityCritical
 }
 
