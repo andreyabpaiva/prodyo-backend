@@ -86,7 +86,7 @@ func (ic *IndicatorCalculator) calculateSpeedAnalysis(completedTasks []models.Ta
 	if totalPoints > 0 && totalEstimatedTime > 0 && totalActualTime > 0 {
 		expectedPercent := 100.0
 		actualPercent := (actualSpeed / expectedSpeed) * 100
-		actualStatus := ic.determineStatus(actualSpeed, indicatorRange)
+		actualStatus := ic.determineStatus(actualSpeed, indicatorRange, true)
 
 		points = []models.DataPoint{
 			{
@@ -135,7 +135,7 @@ func (ic *IndicatorCalculator) calculateReworkAnalysis(completedTasks []models.T
 			rework += float64(bug.Points)
 		}
 
-		status := ic.determineStatus(rework, indicatorRange)
+		status := ic.determineStatus(rework, indicatorRange, false)
 
 		points = append(points, models.DataPoint{
 			X:      i + 1,
@@ -167,7 +167,7 @@ func (ic *IndicatorCalculator) calculateInstabilityAnalysis(completedTasks []mod
 			instability += float64(improvement.Points)
 		}
 
-		status := ic.determineStatus(instability, indicatorRange)
+		status := ic.determineStatus(instability, indicatorRange, false)
 
 		points = append(points, models.DataPoint{
 			X:      i + 1,
@@ -189,7 +189,7 @@ func (ic *IndicatorCalculator) calculateInstabilityAnalysis(completedTasks []mod
 	}
 }
 
-func (ic *IndicatorCalculator) determineStatus(value float64, indicatorRange models.IndicatorRange) models.ProductivityEnum {
+func (ic *IndicatorCalculator) determineStatus(value float64, indicatorRange models.IndicatorRange, higherIsBetter bool) models.ProductivityEnum {
 	r := indicatorRange.Range
 
 	if value >= r.Critical.Min && value <= r.Critical.Max {
@@ -204,10 +204,9 @@ func (ic *IndicatorCalculator) determineStatus(value float64, indicatorRange mod
 		return models.ProductivityOk
 	}
 
-	if value > r.Ok.Max {
+	if higherIsBetter {
 		return models.ProductivityOk
 	}
-
 	return models.ProductivityCritical
 }
 
