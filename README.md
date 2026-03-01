@@ -1,4 +1,5 @@
 # Prodyo Backend API
+
 ## Features
 
 - **Project Management**: Create, read, update, and delete projects with team members
@@ -176,6 +177,145 @@ classDiagram
     Cause --> ProductivityEnum
     Cause --> MetricEnum
     Task --> StatusEnum
+```
+
+## Database's ER Diagram
+
+```mermaid
+erDiagram
+    projects {
+        UUID id PK
+        VARCHAR name
+        TEXT description
+        VARCHAR color
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    users {
+        UUID id PK
+        VARCHAR name
+        VARCHAR email
+        UUID project_id FK
+        VARCHAR password_hash
+        TIMESTAMPTZ created_at
+    }
+
+    project_members {
+        UUID project_id FK
+        UUID user_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    sessions {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR token
+        TIMESTAMPTZ expires_at
+        TIMESTAMPTZ created_at
+    }
+
+    iterations {
+        UUID id PK
+        UUID project_id FK
+        INTEGER number
+        TEXT description
+        TIMESTAMPTZ start_at
+        TIMESTAMPTZ end_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    tasks {
+        UUID id PK
+        UUID iteration_id FK
+        VARCHAR name
+        TEXT description
+        UUID assignee_id FK
+        VARCHAR status
+        BIGINT timer
+        NUMERIC expected_time
+        INTEGER points
+        UUID parent_task_id FK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    improvements {
+        UUID id PK
+        UUID task_id FK
+        UUID assignee_id FK
+        INTEGER number
+        TEXT description
+        INTEGER points
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    bugs {
+        UUID id PK
+        UUID task_id FK
+        UUID assignee_id FK
+        INTEGER number
+        TEXT description
+        INTEGER points
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    indicator_ranges {
+        UUID id PK
+        UUID project_id FK
+        VARCHAR indicator_type
+        DECIMAL ok_min
+        DECIMAL ok_max
+        DECIMAL alert_min
+        DECIMAL alert_max
+        DECIMAL critical_min
+        DECIMAL critical_max
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    causes {
+        UUID id PK
+        UUID indicator_range_id FK
+        VARCHAR metric
+        TEXT description
+        VARCHAR productivity_level
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    actions {
+        UUID id PK
+        UUID indicator_range_id FK
+        UUID cause_id FK
+        TEXT description
+        VARCHAR status
+        TIMESTAMPTZ start_at
+        TIMESTAMPTZ end_at
+        UUID assignee_id FK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    projects ||--o{ project_members : "has"
+    users ||--o{ project_members : "belongs to"
+    users ||--o{ sessions : "owns"
+    projects ||--o{ iterations : "has"
+    projects ||--o{ indicator_ranges : "configures"
+    iterations ||--o{ tasks : "contains"
+    tasks ||--o{ tasks : "is subtask of"
+    tasks ||--o{ improvements : "has"
+    tasks ||--o{ bugs : "has"
+    users ||--o{ tasks : "assigned to"
+    users ||--o{ improvements : "assigned to"
+    users ||--o{ bugs : "assigned to"
+    users ||--o{ actions : "assigned to"
+    indicator_ranges ||--o{ causes : "has"
+    indicator_ranges ||--o{ actions : "has"
+    causes ||--o{ actions : "triggers"
 ```
 
 ## License
